@@ -1,0 +1,173 @@
+import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faBars, 
+  faSearch, 
+  faBell, 
+  faBatteryThreeQuarters,
+  faExclamationTriangle,
+  faCheckCircle,
+  faSignOutAlt
+} from '@fortawesome/free-solid-svg-icons'
+import { useAuth } from '../context/AuthContext'
+
+const Topbar = ({ currentPage, setSidebarOpen }) => {
+  const [notificationOpen, setNotificationOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const { user, logout } = useAuth();
+
+  const getPageTitle = () => {
+    const titles = {
+      dashboard: 'Dashboard',
+      stations: 'Stations',
+      slots: 'Slot Management',
+      revenue: 'Revenue Analytics',
+      rentals: 'Active Rentals',
+      users: 'Users',
+      powerbanks: 'Power Banks',
+      notifications: 'Notifications',
+      settings: 'Profile & Settings'
+    }
+    return titles[currentPage] || 'Dashboard'
+  }
+
+  const notifications = [
+    {
+      id: 1,
+      title: 'Power Bank Low Battery',
+      description: 'Station: Java Taleex Branch',
+      time: '10 minutes ago',
+      type: 'warning',
+      icon: faBatteryThreeQuarters
+    },
+    {
+      id: 2,
+      title: 'Overdue Rental',
+      description: 'Customer: +(252) 618-519075',
+      time: '1 hour ago',
+      type: 'error',
+      icon: faExclamationTriangle
+    },
+    {
+      id: 3,
+      title: 'New Station Added',
+      description: 'Cafe Castello Boondheere',
+      time: '3 hours ago',
+      type: 'success',
+      icon: faCheckCircle
+    }
+  ]
+
+  return (
+    <header className="bg-white shadow-sm p-4 flex justify-between items-center dark:bg-gray-800 transition-colors duration-300">
+      <div className="flex items-center">
+        <button 
+          onClick={() => setSidebarOpen(true)}
+          className="lg:hidden text-gray-500 dark:text-gray-400 mr-4"
+        >
+          <FontAwesomeIcon icon={faBars} className="text-xl" />
+        </button>
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+          {getPageTitle()}
+        </h2>
+      </div>
+      
+      <div className="flex items-center space-x-4">
+        <div className="relative hidden md:block">
+          <input 
+            type="text" 
+            placeholder="Search..." 
+            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+          />
+          <FontAwesomeIcon 
+            icon={faSearch} 
+            className="absolute left-3 top-3 text-gray-400" 
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {/* Notifications */}
+          <div className="relative">
+            <button 
+              onClick={() => setNotificationOpen(!notificationOpen)}
+              className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 relative"
+            >
+              <FontAwesomeIcon icon={faBell} />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            {notificationOpen && (
+              <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
+                <div className="p-3 border-b dark:border-gray-700">
+                  <p className="font-medium dark:text-white">Notifications</p>
+                </div>
+                <div className="divide-y dark:divide-gray-700 max-h-60 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className="flex items-start p-3 hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
+                        notification.type === 'warning' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' :
+                        notification.type === 'error' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-400' :
+                        'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400'
+                      }`}>
+                        <FontAwesomeIcon icon={notification.icon} />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium dark:text-white">{notification.title}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{notification.description}</p>
+                        <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 border-t dark:border-gray-700 text-center">
+                  <a href="#" className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    View All Notifications
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* User Menu */}
+          <div className="relative">
+            <button 
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className="flex items-center space-x-2"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <span>{user?.name?.slice(0,2).toUpperCase() || 'AD'}</span>
+              </div>
+              <span className="hidden md:inline dark:text-white">{user?.name || 'Admin'}</span>
+            </button>
+            
+            {userMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
+                <div className="py-3 px-4 border-b dark:border-gray-700">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Logged in as</p>
+                  <div className="font-semibold text-gray-800 dark:text-white">{user?.name || 'Admin'}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-300">{user?.email || 'admin@example.com'}</div>
+                </div>
+                <div className="py-1">
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Your Profile
+                  </a>
+                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Settings
+                  </a>
+                  <button
+                    onClick={logout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700 flex items-center gap-2"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+export default Topbar 
