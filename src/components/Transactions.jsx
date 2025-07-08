@@ -1,4 +1,4 @@
-const Transactions = () => {
+const Transactions = ({ showAll = false, onViewAll }) => {
   const transactions = [
     {
       id: '53866395',
@@ -29,8 +29,29 @@ const Transactions = () => {
       powerBank: 'WSKC54170012',
       station: 'Cafe castello',
       statusColor: 'green'
-    }
-  ]
+    },
+    // Add more demo transactions for 'View All'
+    {
+      id: '53865400',
+      status: 'Completed',
+      amount: '$0.50',
+      time: 'Yesterday, 6:20 PM',
+      customer: '+(252) 614-123456',
+      powerBank: 'WSKC54170030',
+      station: 'Jazeera Hotel',
+      statusColor: 'green'
+    },
+    {
+      id: '53865300',
+      status: 'Overdue',
+      amount: '$0.50',
+      time: 'Yesterday, 6:10 PM',
+      customer: '+(252) 615-654321',
+      powerBank: 'WSKC54170040',
+      station: 'Mogadishu Mall',
+      statusColor: 'red'
+    },
+  ];
 
   const getStatusClasses = (color) => {
     const colors = {
@@ -48,17 +69,20 @@ const Transactions = () => {
     return colors[color] || 'text-gray-600'
   }
 
+  const visibleTransactions = showAll ? transactions : transactions.slice(0, 3);
+
   return (
     <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
       <div className="p-4 border-b dark:border-gray-700">
         <div className="flex justify-between items-center">
           <h3 className="font-semibold text-lg dark:text-white">Recent Transactions</h3>
-          <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">View All</button>
+          {!showAll && (
+            <button className="text-blue-600 dark:text-blue-400 text-sm font-medium" onClick={onViewAll}>View All</button>
+          )}
         </div>
       </div>
-      
       <div className="divide-y dark:divide-gray-700">
-        {transactions.map((transaction) => (
+        {visibleTransactions.map((transaction) => (
           <div key={transaction.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200">
             <div className="flex justify-between items-start">
               <div>
@@ -72,7 +96,6 @@ const Transactions = () => {
               </div>
               <span className="font-bold dark:text-white">{transaction.amount}</span>
             </div>
-            
             <div className="mt-3 grid grid-cols-2 gap-4">
               <div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">Customer</p>
@@ -85,7 +108,6 @@ const Transactions = () => {
                 <p className="text-sm">Status: <span className={getStatusTextColor(transaction.statusColor)}>{transaction.status}</span></p>
               </div>
             </div>
-            
             <div className="mt-3 text-right">
               <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">View Details →</button>
             </div>

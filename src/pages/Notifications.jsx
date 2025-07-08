@@ -1,23 +1,27 @@
-const Notifications = () => {
-  return (
-    <div className="p-4">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <div>
-          <h3 className="text-2xl font-bold dark:text-white">Notifications</h3>
-          <p className="text-gray-500 dark:text-gray-400">Manage system notifications and alerts</p>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
-        <div className="p-4">
-          <h3 className="font-semibold text-lg dark:text-white mb-4">Notification Center</h3>
-          <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">Notification management interface coming soon...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+const notifications = [
+  {
+    id: 1,
+    title: 'Power Bank Low Battery',
+    description: 'Station: Java Taleex Branch',
+    time: '10 minutes ago',
+    type: 'warning',
+  },
+  // ...more notifications
+];
 
-export default Notifications 
+const Notifications = () => (
+  <div className="p-4 max-w-2xl mx-auto">
+    <h2 className="text-2xl font-bold mb-4 dark:text-white">All Notifications</h2>
+    <div className="space-y-4">
+      {notifications.map((n) => (
+        <div key={n.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="font-semibold">{n.title}</div>
+          <div className="text-gray-500 dark:text-gray-400">{n.description}</div>
+          <div className="text-xs text-gray-400 mt-1">{n.time}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export default Notifications; 
