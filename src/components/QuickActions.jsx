@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faPlus, 
@@ -6,8 +7,11 @@ import {
   faFileInvoiceDollar,
   faChevronRight
 } from '@fortawesome/free-solid-svg-icons'
+import AddStationModal from './AddStationModal';
 
 const QuickActions = () => {
+  const [showAddStation, setShowAddStation] = useState(false);
+
   const actions = [
     {
       title: 'Add New Station',
@@ -15,7 +19,8 @@ const QuickActions = () => {
       bgColor: 'bg-blue-50 dark:bg-gray-700',
       iconBg: 'bg-blue-100 dark:bg-blue-900',
       iconColor: 'text-blue-600 dark:text-blue-400',
-      hoverBg: 'hover:bg-blue-100 dark:hover:bg-gray-600'
+      hoverBg: 'hover:bg-blue-100 dark:hover:bg-gray-600',
+      onClick: () => setShowAddStation(true),
     },
     {
       title: 'Check Power Bank Status',
@@ -23,7 +28,7 @@ const QuickActions = () => {
       bgColor: 'bg-blue-50 dark:bg-gray-700',
       iconBg: 'bg-blue-100 dark:bg-blue-900',
       iconColor: 'text-blue-600 dark:text-blue-400',
-      hoverBg: 'hover:bg-blue-100 dark:hover:bg-gray-600'
+      hoverBg: 'hover:bg-blue-100 dark:hover:bg-gray-600',
     },
     {
       title: 'Add New User',
@@ -31,7 +36,7 @@ const QuickActions = () => {
       bgColor: 'bg-green-50 dark:bg-gray-700',
       iconBg: 'bg-green-100 dark:bg-green-900',
       iconColor: 'text-green-600 dark:text-green-400',
-      hoverBg: 'hover:bg-green-100 dark:hover:bg-gray-600'
+      hoverBg: 'hover:bg-green-100 dark:hover:bg-gray-600',
     },
     {
       title: 'Generate Report',
@@ -39,7 +44,7 @@ const QuickActions = () => {
       bgColor: 'bg-purple-50 dark:bg-gray-700',
       iconBg: 'bg-purple-100 dark:bg-purple-900',
       iconColor: 'text-purple-600 dark:text-purple-400',
-      hoverBg: 'hover:bg-purple-100 dark:hover:bg-gray-600'
+      hoverBg: 'hover:bg-purple-100 dark:hover:bg-gray-600',
     }
   ]
 
@@ -52,6 +57,7 @@ const QuickActions = () => {
           <button 
             key={index}
             className={`w-full flex items-center justify-between p-3 ${action.bgColor} ${action.hoverBg} rounded-lg transition-colors duration-200`}
+            onClick={action.onClick}
           >
             <div className="flex items-center">
               <div className={`p-2 rounded-full ${action.iconBg} ${action.iconColor} mr-3`}>
@@ -63,6 +69,8 @@ const QuickActions = () => {
           </button>
         ))}
       </div>
+      
+      <AddStationModal isOpen={showAddStation} onClose={() => setShowAddStation(false)} />
       
       {/* Recent Transactions (Mini) */}
       <div className="mt-6">
