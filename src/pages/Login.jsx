@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBolt } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
-import { selectUsers } from '../store/usersSlice';
+import { loginUser, selectLoginLoading, selectLoginError, selectLoginSuccess, resetLoginState } from '../store/usersSlice';
 
 const Login = () => {
-  const { login } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const users = useSelector(selectUsers);
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const loading = useSelector(selectLoginLoading);
+  const error = useSelector(selectLoginError);
+  const loginSuccess = useSelector(selectLoginSuccess);
+  const [form, setForm] = useState({ username: '', password: '' });
+
+  // Reset login state on mount
+  useEffect(() => {
+    dispatch(resetLoginState());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (loginSuccess) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [loginSuccess, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,19 +31,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    // Find user by email and password
-    const user = users.find(
-      (u) => u.email === form.email && u.password === form.password
-    );
-    if (user) {
-      login(user);
-      navigate('/dashboard');
-    } else {
-      setError('Invalid email or password');
-    }
-    setLoading(false);
+    dispatch(loginUser(form));
   };
 
   return (
@@ -69,15 +68,15 @@ const Login = () => {
           {error && <div className="mb-4 text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded px-4 py-2 text-center font-medium">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-gray-700 dark:text-gray-200 mb-1 font-medium">Email</label>
+              <label className="block text-gray-700 dark:text-gray-200 mb-1 font-medium">Username</label>
               <input
-                type="email"
-                name="email"
-                value={form.email}
+                type="text"
+                name="username"
+                value={form.username}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white transition-all"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
             <div>

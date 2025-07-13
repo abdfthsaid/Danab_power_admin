@@ -1,28 +1,172 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+// Async thunk to fetch users from the API
+export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
+  const response = await fetch('https://danabbackend.onrender.com/api/users/all');
+  if (!response.ok) throw new Error('Failed to fetch users');
+  const data = await response.json();
+  return data;
+});
+
+// Async thunk for user login
+export const loginUser = createAsyncThunk('users/loginUser', async ({ username, password }) => {
+  const response = await fetch('https://danabbackend.onrender.com/api/users/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || 'Login failed');
+  return data.user;
+});
+
+// Register user thunk
+export const registerUser = createAsyncThunk('users/registerUser', async (userData, { rejectWithValue }) => {
+  try {
+    const response = await fetch('https://danabbackend.onrender.com/api/users/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Registration failed');
+    return data;
+  } catch (err) {
+    return rejectWithValue(err.message);
+  }
+});
+
+// Update user thunk (by username)
+export const updateUser = createAsyncThunk('users/updateUser', async ({ username, updateData }, { rejectWithValue }) => {
+  try {
+    const response = await fetch(`https://danabbackend.onrender.com/api/users/update?username=${encodeURIComponent(username)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateData)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Update failed');
+    return { username, user: data };
+  } catch (err) {
+    return rejectWithValue(err.message);
+  }
+});
 
 const initialState = {
-  users: [
-    { id: 1, name: 'Ahmed Ali', email: 'ahmed@gmail.com', password: 'ahmed123', role: 'Admin', permissions: ['manage_stations', 'view_reports', 'edit_users', 'delete_users'] },
-    { id: 2, name: 'abdifitaax', email: 'abdi@gmail.com', password: 'abdi123', role: 'User', permissions: ['view_reports'] },
-    { id: 3, name: 'Khalid mohomud', email: 'khalid@gmail.com', password: 'khalid123', role: 'User', permissions: ['manage_stations', 'view_reports'] },
-  ],
+  users: [],
   permissions: [
     { key: 'manage_stations', label: 'Manage Stations' },
     { key: 'view_reports', label: 'View Reports' },
     { key: 'edit_users', label: 'Edit Users' },
     { key: 'delete_users', label: 'Delete Users' },
   ],
+  loading: false,
+  error: null,
+  currentUser: JSON.parse(localStorage.getItem('sessionUser')) || null,
+  loginLoading: false,
+  loginError: null,
+  loginSuccess: false,
+  registerLoading: false,
+  registerError: null,
+  updateLoading: false,
+  updateError: null,
 };
 
 const usersSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
-    // Add reducers for user management if needed
+    logoutUser(state) {
+      state.currentUser = null;
+      localStorage.removeItem('sessionUser');
+    },
+    setCurrentUser(state, action) {
+      state.currentUser = action.payload;
+      localStorage.setItem('sessionUser', JSON.stringify(action.payload));
+    },
+    resetLoginState(state) {
+      state.loginSuccess = false;
+      state.loginError = null;
+      state.loginLoading = false;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(loginUser.pending, (state) => {
+        state.loginLoading = true;
+        state.loginError = null;
+        state.loginSuccess = false;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loginLoading = false;
+        state.currentUser = action.payload;
+        state.loginSuccess = true;
+        localStorage.setItem('sessionUser', JSON.stringify(action.payload));
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loginLoading = false;
+        state.loginError = action.error.message;
+        state.loginSuccess = false;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.registerLoading = true;
+        state.registerError = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.registerLoading = false;
+        // Optionally, add the new user to the users list
+        if (action.payload && action.payload.id) {
+          state.users.push(action.payload);
+        }
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.registerLoading = false;
+        state.registerError = action.payload || action.error.message;
+      })
+      .addCase(updateUser.pending, (state) => {
+        state.updateLoading = true;
+        state.updateError = null;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.updateLoading = false;
+        // Update the user in the users list
+        const idx = state.users.findIndex(u => u.username === action.payload.username);
+        if (idx !== -1) {
+          state.users[idx] = { ...state.users[idx], ...action.payload.user };
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.updateError = action.payload || action.error.message;
+      });
   },
 });
 
 export const selectUsers = (state) => state.users.users;
 export const selectPermissions = (state) => state.users.permissions;
+export const selectUsersLoading = (state) => state.users.loading;
+export const selectUsersError = (state) => state.users.error;
+export const selectCurrentUser = (state) => state.users.currentUser;
+export const selectLoginLoading = (state) => state.users.loginLoading;
+export const selectLoginError = (state) => state.users.loginError;
+export const selectLoginSuccess = (state) => state.users.loginSuccess;
+export const selectRegisterLoading = (state) => state.users.registerLoading;
+export const selectRegisterError = (state) => state.users.registerError;
+export const selectUpdateLoading = (state) => state.users.updateLoading;
+export const selectUpdateError = (state) => state.users.updateError;
+
+export const { logoutUser, setCurrentUser, resetLoginState } = usersSlice.actions;
 
 export default usersSlice.reducer; 

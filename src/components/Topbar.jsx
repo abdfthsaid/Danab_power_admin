@@ -264,18 +264,28 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center space-x-2"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                <span>{user?.name?.slice(0,2).toUpperCase() || 'AD'}</span>
-              </div>
-              <span className="hidden md:inline dark:text-white">{user?.name || 'Admin'}</span>
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt="User avatar" className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                  <span>{user?.name ? user.name.slice(0,2).toUpperCase() : 'AD'}</span>
+                </div>
+              )}
             </button>
             
             {userMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
                 <div className="py-3 px-4 border-b dark:border-gray-700">
                   <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Logged in as</p>
-                  <div className="font-semibold text-gray-800 dark:text-white">{user?.name || 'Admin'}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-300">{user?.email || 'admin@example.com'}</div>
+                  <div className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                    {user?.name || 'Guest'}
+                    {user?.role && (
+                      <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${user.role === 'admin' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-300">{user?.email || ''}</div>
                 </div>
                 <div className="py-1">
                   <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">

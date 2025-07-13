@@ -22,6 +22,16 @@ function getBatteryColor(battery) {
 
 function SlotCard({ slot }) {
   const status = slot.rented ? 'Occupied' : 'Available';
+  const isOccupied = slot.rented;
+  const actionBtn = isOccupied ? (
+    <button className="flex items-center justify-center w-full gap-2 py-2 mt-1 font-semibold text-white transition bg-red-600 border border-red-600 rounded-lg dark:bg-red-700 dark:border-red-700 hover:bg-red-700 dark:hover:bg-red-800">
+      <FaUnlockAlt className="mr-1" /> Unlock
+    </button>
+  ) : (
+    <button className="flex items-center justify-center w-full gap-2 py-2 mt-1 font-semibold text-gray-700 transition bg-gray-200 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-900">
+      <FaLock className="mr-1" /> Lock
+    </button>
+  );
   const style = status === 'Occupied'
     ? { color: 'bg-green-100 text-green-700 border-green-300', icon: <FaCheckCircle className="mr-1 text-green-500" />, label: 'Occupied' }
     : { color: 'bg-gray-100 text-gray-700 border-gray-300', icon: <FaPlug className="mr-1 text-blue-500" />, label: 'Available' };
@@ -56,9 +66,7 @@ function SlotCard({ slot }) {
           </span>
         )}
       </div>
-      <button className="flex items-center justify-center w-full gap-2 py-2 mt-1 font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900">
-        <FaUnlockAlt className="mr-1" /> Unlock
-      </button>
+      {actionBtn}
     </div>
   );
 }
@@ -230,9 +238,15 @@ const Slots = () => {
                   )}
                 </div>
               </div>
-              <button className="flex items-center gap-2 px-3 py-1 text-sm font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900">
-                <FaUnlockAlt className="mr-1" /> Unlock
-              </button>
+              {slot.rented ? (
+                <button className="flex items-center gap-2 px-3 py-1 text-sm font-semibold text-white transition bg-red-600 border border-red-600 rounded-lg dark:bg-red-700 dark:border-red-700 hover:bg-red-700 dark:hover:bg-red-800">
+                  <FaUnlockAlt className="mr-1" /> Unlock
+                </button>
+              ) : (
+                <button className="flex items-center gap-2 px-3 py-1 text-sm font-semibold text-gray-700 transition bg-gray-200 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-900">
+                  <FaLock className="mr-1" /> Lock
+                </button>
+              )}
             </div>
           ))}
         </div>

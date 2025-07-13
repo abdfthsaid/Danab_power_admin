@@ -152,35 +152,35 @@ const Transactions = ({ showAll = false, onViewAll }) => {
           </div>
         ) : (
           visibleTransactions.map((transaction) => (
-            <div key={transaction.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium dark:text-white">ID: {transaction.id}</p>
-                  <div className="flex items-center mt-1">
+          <div key={transaction.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-medium dark:text-white">ID: {transaction.id}</p>
+                <div className="flex items-center mt-1">
                     <span className={`${getStatusClasses(transaction.status)} text-xs font-medium px-2 py-0.5 rounded-full`}>
-                      {transaction.status}
-                    </span>
+                    {transaction.status}
+                  </span>
                     <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimestamp(transaction.timestamp)}</span>
                   </div>
                 </div>
                 <span className="font-bold dark:text-white">{formatAmount(transaction.amount)}</span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Customer</p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Customer</p>
                   <p className="font-medium dark:text-white">{formatPhoneNumber(transaction.phoneNumber)}</p>
                   <p className="text-sm dark:text-gray-300">Power Bank {transaction.battery_id}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">Station</p>
+              </div>
+              <div>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Station</p>
                   <p className="font-medium dark:text-white">{getStationName(transaction.stationCode)}</p>
                   <p className="text-sm">Slot: <span className="text-blue-600 dark:text-blue-400">{transaction.slot_id}</span></p>
                 </div>
-              </div>
-              <div className="mt-3 text-right">
-                <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">View Details →</button>
-              </div>
             </div>
+            <div className="mt-3 text-right">
+              <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">View Details →</button>
+            </div>
+          </div>
           ))
         )}
       </div>
