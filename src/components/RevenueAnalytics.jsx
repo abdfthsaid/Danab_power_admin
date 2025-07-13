@@ -12,6 +12,7 @@ const RevenueAnalytics = () => {
       <div className="p-4 border-b dark:border-gray-700">
         <h3 className="font-semibold text-lg dark:text-white">Revenue Analytics</h3>
       </div>
+    
       
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">

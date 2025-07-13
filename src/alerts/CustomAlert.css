@@ -1,0 +1,48 @@
+.custom-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slideIn 0.5s ease-out;
+  }
+  
+  .custom-alert.success {
+    background-color: #4caf50; /* Green */
+  }
+  
+  .custom-alert.error {
+    background-color: #f44336; /* Red */
+  }
+  
+  .custom-alert.warning {
+    background-color: #ff9800; /* Orange */
+  }
+  
+  .custom-alert.info {
+    background-color: #2196f3; /* Blue */
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 15px;
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }

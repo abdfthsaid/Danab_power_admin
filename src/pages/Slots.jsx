@@ -2,14 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaMapMarkerAlt, FaSearch, FaTimes, FaCheckCircle, FaExclamationTriangle, FaWrench, FaPlug, FaLock, FaBatteryFull, FaUnlockAlt } from 'react-icons/fa';
 import Transactions from '../components/Transactions';
 
-// Station ID to friendly label mapping
-const STATION_LABELS = {
-  '58': 'STATION_CASTELLO_TALEEX',
-  '02': 'STATION_CASTELLO_BOONDHERE',
-  '03': 'STATION_JAVA_TALEEX',
-  '04': 'STATION_JAVA_AIRPORT',
-  '05': 'STATION_DILEK_SOMALIA',
-};
+// Remove hardcoded station list
 
 function StatCard({ icon, label, value }) {
   return (
@@ -57,6 +50,11 @@ function SlotCard({ slot }) {
       </div>
       <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
         Status: {slot.rented ? 'Occupied' : 'Available'}
+        {slot.rented && slot.phoneNumber && (
+          <span className="block text-xs text-blue-600 dark:text-blue-400">
+            Phone: {slot.phoneNumber}
+          </span>
+        )}
       </div>
       <button className="flex items-center justify-center w-full gap-2 py-2 mt-1 font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900">
         <FaUnlockAlt className="mr-1" /> Unlock
@@ -67,30 +65,31 @@ function SlotCard({ slot }) {
 
 const Slots = () => {
   const [stations, setStations] = useState([]);
-  const [selectedStation, setSelectedStation] = useState(null);
+  const [selectedStation, setSelectedStation] = useState('');
   const [slots, setSlots] = useState([]);
   const [search, setSearch] = useState('');
   const [view, setView] = useState('grid');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [stationStats, setStationStats] = useState({ totalSlots: 0, availableCount: 0, rentedCount: 0 });
 
+  // Fetch stations from API
   useEffect(() => {
     const fetchStations = async () => {
-      setLoading(true);
-      setError('');
       try {
-        const res = await fetch('http://localhost:3000/api/stations');
-        const data = await res.json();
-        if (Array.isArray(data.stations)) {
-          setStations(data.stations);
-          setSelectedStation(data.stations[0]?.id ? String(data.stations[0].id) : null);
+        const response = await fetch('https://danabbackend.onrender.com/api/stations/basic');
+        const data = await response.json();
+        setStations(data.stations || []);
+        // Set the first station as default if available
+        if (data.stations && data.stations.length > 0) {
+          setSelectedStation(data.stations[0].id);
         }
-      } catch (err) {
+      } catch (error) {
+        console.error('Failed to fetch stations:', error);
         setError('Failed to load stations');
-      } finally {
-        setLoading(false);
       }
     };
+
     fetchStations();
   }, []);
 
@@ -100,10 +99,14 @@ const Slots = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`http://localhost:3000/api/stations/${selectedStation}`);
+        const res = await fetch(`https://danabbackend.onrender.com/api/stations/stats/${selectedStation}`);
         const data = await res.json();
-        console.log(data);
         setSlots(Array.isArray(data.batteries) ? data.batteries : []);
+        setStationStats({
+          totalSlots: data.totalSlots || 0,
+          availableCount: data.availableCount || 0,
+          rentedCount: data.rentedCount || 0,
+        });
       } catch (err) {
         setError('Failed to load slots');
       } finally {
@@ -121,13 +124,12 @@ const Slots = () => {
         (slot.status && slot.status.toLowerCase().includes(search.toLowerCase()))
       )
   );
-    // console.log(filteredSlots);
 
-  // Calculate stats
+  // Use API stats if available, fallback to calculated
   const slotStats = [
-    { label: 'Total Slots', value: slots.length, icon: <FaPlug className="text-blue-500" /> },
-    { label: 'Available', value: slots.filter(s => !s.rented).length, icon: <FaCheckCircle className="text-green-500" /> },
-    { label: 'Occupied', value: slots.filter(s => s.rented).length, icon: <FaLock className="text-purple-500" /> },
+    { label: 'Total Slots', value: stationStats.totalSlots || slots.length, icon: <FaPlug className="text-blue-500" /> },
+    { label: 'Available', value: stationStats.availableCount || slots.filter(s => !s.rented).length, icon: <FaCheckCircle className="text-green-500" /> },
+    { label: 'Occupied', value: stationStats.rentedCount || slots.filter(s => s.rented).length, icon: <FaLock className="text-purple-500" /> },
     { label: 'Error', value: slots.filter(s => s.status !== 'Online').length, icon: <FaExclamationTriangle className="text-red-500" /> },
   ];
 
@@ -138,11 +140,7 @@ const Slots = () => {
         <p className="text-gray-500 dark:text-gray-400">
           Manage power bank slots at{' '}
           <span className="font-semibold text-blue-600 dark:text-blue-400">
-            {stations.length === 0 ? '...' : (
-              STATION_LABELS[String(selectedStation)] ||
-              stations.find(s => String(s.id) === String(selectedStation))?.name ||
-              '...'
-            )}
+            {stations.find(s => s.id === selectedStation)?.location || '...'}
           </span>
         </p>
       </div>
@@ -156,8 +154,8 @@ const Slots = () => {
             aria-label="Select station"
           >
             {stations.map(station => (
-              <option key={station.id} value={String(station.id)}>
-                {STATION_LABELS[String(station.id)] || station.name}
+              <option key={station.id} value={station.id}>
+                {station.location}
               </option>
             ))}
           </select>
@@ -223,7 +221,14 @@ const Slots = () => {
                 <div className="font-bold dark:text-white">#{slot.slot_id}</div>
                 <div className="text-xs text-gray-400">Battery {slot.battery_id}</div>
                 <div className="text-xs text-gray-400">Battery: {slot.level}%</div>
-                <div className="text-xs text-gray-400">Status: {slot.rented ? 'Occupied' : 'Available'}</div>
+                <div className="text-xs text-gray-400">
+                  Status: {slot.rented ? 'Occupied' : 'Available'}
+                  {slot.rented && slot.phoneNumber && (
+                    <span className="block text-xs text-blue-600 dark:text-blue-400">
+                      Phone: {slot.phoneNumber}
+                    </span>
+                  )}
+                </div>
               </div>
               <button className="flex items-center gap-2 px-3 py-1 text-sm font-semibold text-gray-700 transition bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900">
                 <FaUnlockAlt className="mr-1" /> Unlock

@@ -1,7 +1,31 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUp, faUsers, faCalendarDay } from '@fortawesome/free-solid-svg-icons'
+import { useState, useEffect } from 'react'
 
 const StatsCards = () => {
+  const [monthlyData, setMonthlyData] = useState({ month: '', totalCustomersThisMonth: 0, stations: 0 })
+  const [dailyData, setDailyData] = useState({ date: '', totalCustomersToday: 0, stations: 0 })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch monthly data
+        const monthlyResponse = await fetch('https://danabbackend.onrender.com/api/customers/monthly-total')
+        const monthlyResult = await monthlyResponse.json()
+        setMonthlyData(monthlyResult)
+
+        // Fetch daily data
+        const dailyResponse = await fetch('https://danabbackend.onrender.com/api/customers/daily-total')
+        const dailyResult = await dailyResponse.json()
+        setDailyData(dailyResult)
+      } catch (error) {
+        console.error('Failed to fetch data:', error)
+      }
+    }
+
+    fetchData()
+  }, [])
+
   const stats = [
     {
       title: 'Total Revenue',
@@ -24,12 +48,28 @@ const StatsCards = () => {
       progress: 85,
       color: 'purple'
     },
+    // {
+    //   title: 'Avg. Rental Time',
+    //   value: '5.4 hrs',
+    //   change: '+2.1%',
+    //   progress: 45,
+    //   color: 'yellow'
+    // },
     {
-      title: 'Avg. Rental Time',
-      value: '5.4 hrs',
-      change: '+2.1%',
-      progress: 45,
-      color: 'yellow'
+      title: 'Monthly Customers',
+      value: monthlyData.totalCustomersThisMonth.toString(),
+      change: `${monthlyData.stations} stations`,
+      progress: 70,
+      color: 'indigo',
+      icon: <FontAwesomeIcon icon={faUsers} className="text-indigo-500" />
+    },
+    {
+      title: 'Daily Customers',
+      value: dailyData.totalCustomersToday.toString(),
+      change: `${dailyData.stations} stations`,
+      progress: 60,
+      color: 'pink',
+      icon: <FontAwesomeIcon icon={faCalendarDay} className="text-pink-500" />
     }
   ]
 
@@ -38,7 +78,9 @@ const StatsCards = () => {
       blue: 'bg-blue-500',
       green: 'bg-green-500',
       purple: 'bg-purple-500',
-      yellow: 'bg-yellow-500'
+      yellow: 'bg-yellow-500',
+      indigo: 'bg-indigo-500',
+      pink: 'bg-pink-500'
     }
     return colors[color] || 'bg-blue-500'
   }
@@ -53,6 +95,7 @@ const StatsCards = () => {
               <h3 className="mt-1 text-2xl font-bold dark:text-white">{stat.value}</h3>
             </div>
             <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs font-medium px-2 py-0.5 rounded-full flex items-center">
+              {stat.icon && <span className="mr-1">{stat.icon}</span>}
               <FontAwesomeIcon icon={faArrowUp} className="mr-1" />
               {stat.change}
             </span>
