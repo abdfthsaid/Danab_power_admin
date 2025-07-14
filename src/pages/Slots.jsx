@@ -163,7 +163,7 @@ const Slots = () => {
           >
             {stations.map(station => (
               <option key={station.id} value={station.id}>
-                {station.location}
+                {station.name}
               </option>
             ))}
           </select>

@@ -1,19 +1,28 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp, faUsers, faCalendarDay } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUp, faUsers, faCalendarDay, faMoneyBillWave, faCalendar } from '@fortawesome/free-solid-svg-icons'
 import { useState, useEffect } from 'react'
 
 const StatsCards = () => {
   const [monthlyData, setMonthlyData] = useState({ month: '', totalCustomersThisMonth: 0, stations: 0 })
   const [dailyData, setDailyData] = useState({ date: '', totalCustomersToday: 0, stations: 0 })
+  const [revenueData, setRevenueData] = useState({ totalRevenueMonthly: 0, totalRentalsThisMonth: 0, month: '' })
+  const [dailyRevenueData, setDailyRevenueData] = useState({ totalRevenueToday: 0, totalRentalsToday: 0, date: '' })
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch monthly revenue
+        const revenueResponse = await fetch('https://danabbackend.onrender.com/api/revenue/monthly')
+        const revenueResult = await revenueResponse.json()
+        setRevenueData(revenueResult)
+        // Fetch daily revenue
+        const dailyRevenueResponse = await fetch('https://danabbackend.onrender.com/api/revenue/daily')
+        const dailyRevenueResult = await dailyRevenueResponse.json()
+        setDailyRevenueData(dailyRevenueResult)
         // Fetch monthly data
         const monthlyResponse = await fetch('https://danabbackend.onrender.com/api/customers/monthly-total')
         const monthlyResult = await monthlyResponse.json()
         setMonthlyData(monthlyResult)
-
         // Fetch daily data
         const dailyResponse = await fetch('https://danabbackend.onrender.com/api/customers/daily-total')
         const dailyResult = await dailyResponse.json()
@@ -28,46 +37,64 @@ const StatsCards = () => {
 
   const stats = [
     {
-      title: 'Total Revenue',
-      value: '$900.50',
-      change: '50.5% vs last week',
+      title: `Total Revenue (${revenueData.month || 'Month'})`,
+      value: `$${revenueData.totalRevenueMonthly.toFixed(2)}`,
+      change: `${revenueData.totalRentalsThisMonth} rentals`,
       progress: 85,
-      color: 'blue'
+      color: 'blue',
+      icon: <FontAwesomeIcon icon={faMoneyBillWave} className="text-blue-500" />
     },
     {
-      title: 'Active Rentals',
-      value: '425',
-      change: '8.3% vs last week',
+      title: `Total Rentals (${revenueData.month || 'Month'})`,
+      value: revenueData.totalRentalsThisMonth.toString(),
+      change: `$${revenueData.totalRevenueMonthly.toFixed(2)} revenue`,
       progress: 50,
-      color: 'green'
-    },
-    {
-      title: 'Total Customers',
-      value: '1000',
-      change: '5.2% vs last week',
-      progress: 85,
-      color: 'purple'
+      color: 'green',
+      icon: <FontAwesomeIcon icon={faArrowUp} className="text-green-500" />
     },
     // {
+    //   title: 'Total Customers',
+    //   value: '1000',
+    //   change: '5.2% vs last week',
+    //   progress: 85,
+    //   color: 'purple'
+    // },
+    // // {
     //   title: 'Avg. Rental Time',
     //   value: '5.4 hrs',
     //   change: '+2.1%',
     //   progress: 45,
     //   color: 'yellow'
     // },
+    // {
+    //   title: 'Monthly Customers',
+    //   value: monthlyData.totalCustomersThisMonth.toString(),
+    //   change: `${monthlyData.stations} stations`,
+    //   progress: 70,
+    //   color: 'indigo',
+    //   icon: <FontAwesomeIcon icon={faUsers} className="text-indigo-500" />
+    // },
+    // {
+    //   title: 'Daily Customers',
+    //   value: dailyData.totalCustomersToday.toString(),
+    //   change: `${dailyData.stations} stations`,
+    //   progress: 60,
+    //   color: 'pink',
+    //   icon: <FontAwesomeIcon icon={faCalendarDay} className="text-pink-500" />
+    // },
     {
-      title: 'Monthly Customers',
-      value: monthlyData.totalCustomersThisMonth.toString(),
-      change: `${monthlyData.stations} stations`,
-      progress: 70,
+      title: `Total Revenue (Today)`,
+      value: `$${dailyRevenueData.totalRevenueToday.toFixed(2)}`,
+      change: `${dailyRevenueData.totalRentalsToday} rentals`,
+      progress: 60,
       color: 'indigo',
-      icon: <FontAwesomeIcon icon={faUsers} className="text-indigo-500" />
+      icon: <FontAwesomeIcon icon={faCalendar} className="text-indigo-500" />
     },
     {
-      title: 'Daily Customers',
-      value: dailyData.totalCustomersToday.toString(),
-      change: `${dailyData.stations} stations`,
-      progress: 60,
+      title: `Total Rentals (Today)`,
+      value: dailyRevenueData.totalRentalsToday.toString(),
+      change: `$${dailyRevenueData.totalRevenueToday.toFixed(2)} revenue`,
+      progress: 40,
       color: 'pink',
       icon: <FontAwesomeIcon icon={faCalendarDay} className="text-pink-500" />
     }
