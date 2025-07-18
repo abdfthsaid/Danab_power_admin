@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faPen, faTrash, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import CustomAlert from '../alerts/CustomAlert';
+import { useAuth } from '../context/AuthContext';
 
 const Stations = () => {
   const [stations, setStations] = useState([]);
@@ -15,6 +16,9 @@ const Stations = () => {
   const [alert, setAlert] = useState({ open: false, message: '', type: '' });
   const [confirmDelete, setConfirmDelete] = useState({ open: false, station: null });
   const [editId, setEditId] = useState(null);
+  const [infoModal, setInfoModal] = useState({ open: false, station: null });
+  const [stationStats, setStationStats] = useState({ loading: false, error: '', daily: null, monthly: null });
+  const { user: currentUser } = useAuth();
 
   // Show custom alert
   const showAlert = (message, type) => {
@@ -58,6 +62,29 @@ const Stations = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditModalOpen(false);
+  };
+
+  const openInfoModal = async (station) => {
+    setInfoModal({ open: true, station });
+    setStationStats({ loading: true, error: '', daily: null, monthly: null });
+    try {
+      const [dailyRes, monthlyRes] = await Promise.all([
+        axios.get(`https://danabbackend.onrender.com/api/customers/daily/${station.imei}`),
+        axios.get(`https://danabbackend.onrender.com/api/customers/monthly/${station.imei}`)
+      ]);
+      setStationStats({
+        loading: false,
+        error: '',
+        daily: dailyRes.data,
+        monthly: monthlyRes.data
+      });
+    } catch (error) {
+      setStationStats({ loading: false, error: 'Failed to fetch stats', daily: null, monthly: null });
+    }
+  };
+  const closeInfoModal = () => {
+    setInfoModal({ open: false, station: null });
+    setStationStats({ loading: false, error: '', daily: null, monthly: null });
   };
 
   // Add new station
@@ -157,13 +184,13 @@ const Stations = () => {
           onClose={() => setAlert({ open: false, message: '', type: '' })}
         />
       )}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="flex flex-col mb-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h3 className="text-2xl font-bold dark:text-white">Station Management</h3>
           <p className="text-gray-500 dark:text-gray-400">Manage all power bank rental stations</p>
         </div>
         <button
-          className="mt-4 md:mt-0 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-2 px-5 rounded-lg shadow-lg font-semibold flex items-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="flex items-center px-5 py-2 mt-4 font-semibold text-white transition-all duration-200 rounded-lg shadow-lg md:mt-0 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-300"
           onClick={openAddModal}
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" /> Add New Station
@@ -172,39 +199,39 @@ const Stations = () => {
       {/* Add Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-fadeInUp">
+          <div className="relative w-full max-w-lg p-8 bg-white shadow-2xl dark:bg-gray-800 rounded-2xl animate-fadeInUp">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 dark:hover:text-white text-xl focus:outline-none"
+              className="absolute text-xl text-gray-400 top-4 right-4 hover:text-blue-600 dark:hover:text-white focus:outline-none"
               onClick={closeModal}
               aria-label="Close"
             >
               &times;
             </button>
-            <h4 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Add Station</h4>
+            <h4 className="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Add Station</h4>
             <form onSubmit={handleAdd} className="space-y-5">
               <div>
-                <label htmlFor="imei" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">IMEI</label>
-                <input type="text" id="imei" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="IMEI" value={form.imei} onChange={e => setForm({ ...form, imei: e.target.value })} required />
+                <label htmlFor="imei" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">IMEI</label>
+                <input type="text" id="imei" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="IMEI" value={form.imei} onChange={e => setForm({ ...form, imei: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                <input type="text" id="name" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                <label htmlFor="name" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Name</label>
+                <input type="text" id="name" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="iccid" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ICCID</label>
-                <input type="text" id="iccid" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="ICCID" value={form.iccid} onChange={e => setForm({ ...form, iccid: e.target.value })} required />
+                <label htmlFor="iccid" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">ICCID</label>
+                <input type="text" id="iccid" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="ICCID" value={form.iccid} onChange={e => setForm({ ...form, iccid: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="location" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Location</label>
-                <input type="text" id="location" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} required />
+                <label htmlFor="location" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Location</label>
+                <input type="text" id="location" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="totalSlots" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Total Slots</label>
-                <input type="number" id="totalSlots" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Total Slots" value={form.totalSlots} onChange={e => setForm({ ...form, totalSlots: e.target.value })} required min={1} />
+                <label htmlFor="totalSlots" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Total Slots</label>
+                <input type="number" id="totalSlots" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Total Slots" value={form.totalSlots} onChange={e => setForm({ ...form, totalSlots: e.target.value })} required min={1} />
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button type="button" className="px-5 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Add</button>
+              <div className="flex justify-end mt-6 space-x-3">
+                <button type="button" className="px-5 py-2 text-gray-700 transition bg-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500" onClick={closeModal}>Cancel</button>
+                <button type="submit" className="px-5 py-2 text-white transition bg-blue-600 rounded-lg hover:bg-blue-700">Add</button>
               </div>
             </form>
           </div>
@@ -213,39 +240,39 @@ const Stations = () => {
       {/* Edit Modal */}
       {editModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg p-8 relative animate-fadeInUp">
+          <div className="relative w-full max-w-lg p-8 bg-white shadow-2xl dark:bg-gray-800 rounded-2xl animate-fadeInUp">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 dark:hover:text-white text-xl focus:outline-none"
+              className="absolute text-xl text-gray-400 top-4 right-4 hover:text-blue-600 dark:hover:text-white focus:outline-none"
               onClick={closeModal}
               aria-label="Close"
             >
               &times;
             </button>
-            <h4 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Edit Station</h4>
+            <h4 className="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Edit Station</h4>
             <form onSubmit={handleUpdate} className="space-y-5">
               <div>
-                <label htmlFor="editImei" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">IMEI</label>
-                <input type="text" id="editImei" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="IMEI" value={form.imei}   onChange={e => setForm({ ...form, imei: e.target.value })}   required />
+                <label htmlFor="editImei" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">IMEI</label>
+                <input type="text" id="editImei" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="IMEI" value={form.imei}   onChange={e => setForm({ ...form, imei: e.target.value })}   required />
               </div>
               <div>
-                <label htmlFor="editName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                <input type="text" id="editName" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                <label htmlFor="editName" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Name</label>
+                <input type="text" id="editName" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="editIccid" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ICCID</label>
-                <input type="text" id="editIccid" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="ICCID" value={form.iccid} onChange={e => setForm({ ...form, iccid: e.target.value })} required />
+                <label htmlFor="editIccid" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">ICCID</label>
+                <input type="text" id="editIccid" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="ICCID" value={form.iccid} onChange={e => setForm({ ...form, iccid: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="editLocation" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Location</label>
-                <input type="text" id="editLocation" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} required />
+                <label htmlFor="editLocation" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Location</label>
+                <input type="text" id="editLocation" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} required />
               </div>
               <div>
-                <label htmlFor="editTotalSlots" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Total Slots</label>
-                <input type="number" id="editTotalSlots" className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-all" placeholder="Total Slots" value={form.totalSlots} onChange={e => setForm({ ...form, totalSlots: e.target.value })} required min={1} />
+                <label htmlFor="editTotalSlots" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Total Slots</label>
+                <input type="number" id="editTotalSlots" className="w-full px-4 py-2 transition-all border border-gray-200 rounded-lg dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white" placeholder="Total Slots" value={form.totalSlots} onChange={e => setForm({ ...form, totalSlots: e.target.value })} required min={1} />
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button type="button" className="px-5 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition" onClick={closeModal}>Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Update</button>
+              <div className="flex justify-end mt-6 space-x-3">
+                <button type="button" className="px-5 py-2 text-gray-700 transition bg-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500" onClick={closeModal}>Cancel</button>
+                <button type="submit" className="px-5 py-2 text-white transition bg-blue-600 rounded-lg hover:bg-blue-700">Update</button>
               </div>
             </form>
           </div>
@@ -253,34 +280,71 @@ const Stations = () => {
       )}
       {confirmDelete.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 relative animate-fadeInUp">
+          <div className="relative w-full max-w-md p-8 bg-white shadow-2xl dark:bg-gray-800 rounded-2xl animate-fadeInUp">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 dark:hover:text-white text-xl focus:outline-none"
+              className="absolute text-xl text-gray-400 top-4 right-4 hover:text-blue-600 dark:hover:text-white focus:outline-none"
               onClick={() => setConfirmDelete({ open: false, station: null })}
               aria-label="Close"
             >
               &times;
             </button>
-            <h4 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Are you sure you want to delete this station?</h4>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button className="px-5 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition" onClick={() => setConfirmDelete({ open: false, station: null })}>Cancel</button>
-              <button className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition" onClick={handleDelete}>Delete</button>
+            <h4 className="mb-6 text-2xl font-bold text-gray-800 dark:text-white">Are you sure you want to delete this station?</h4>
+            <div className="flex justify-end mt-6 space-x-3">
+              <button className="px-5 py-2 text-gray-700 transition bg-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500" onClick={() => setConfirmDelete({ open: false, station: null })}>Cancel</button>
+              <button className="px-5 py-2 text-white transition bg-red-600 rounded-lg hover:bg-red-700" onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
       )}
-      <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300 mb-6">
+      {infoModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="relative w-full max-w-md p-8 bg-white shadow-2xl dark:bg-gray-800 rounded-2xl animate-fadeInUp">
+            <button
+              className="absolute text-xl text-gray-400 top-4 right-4 hover:text-indigo-600 dark:hover:text-white focus:outline-none"
+              onClick={closeInfoModal}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h4 className="mb-4 text-2xl font-bold text-gray-800 dark:text-white">Station Stats</h4>
+            <div className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">{infoModal.station?.name}</div>
+            <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">IMEI: {infoModal.station?.imei}</div>
+            {stationStats.loading ? (
+              <div className="py-6 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+            ) : stationStats.error ? (
+              <div className="py-6 text-center text-red-600 dark:text-red-400">{stationStats.error}</div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-semibold text-base flex-1 text-center shadow">
+                    Daily Customers
+                    <span className="block text-2xl font-bold mt-1">{stationStats.daily?.count ?? '-'}</span>
+                  </span>
+                  <span className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 font-semibold text-base flex-1 text-center shadow">
+                    Monthly Customers
+                    <span className="block text-2xl font-bold mt-1">{stationStats.monthly?.count ?? '-'}</span>
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end mt-6">
+              <button className="px-5 py-2 text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700" onClick={closeInfoModal}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="mb-6 transition-colors duration-300 bg-white rounded-lg shadow dark:bg-gray-800">
         <div className="p-4 border-b dark:border-gray-700">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:w-64 mb-4 md:mb-0">
+            <div className="relative w-full mb-4 md:w-64 md:mb-0">
               <input
                 type="text"
                 placeholder="Search stations..."
                 value={search}
                 onChange={handleSearch}
-                className="w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                className="w-full py-2 pl-8 pr-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
               />
-              <span className="absolute left-2 top-3 text-gray-400">
+              <span className="absolute text-gray-400 left-2 top-3">
                 <FontAwesomeIcon icon={faPlus} />
               </span>
             </div>
@@ -291,36 +355,45 @@ const Stations = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">IMEI</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">ICCID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Location</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Total Slots</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">IMEI</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Name</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">ICCID</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Location</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Total Slots</th>
+                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                 {filteredStations.map((station) => (
                   <tr key={station.imei}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">{station.imei}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{station.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{station.iccid}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{station.location}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{station.totalSlots}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-gray-300">{station.imei}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-300">{station.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-300">{station.iccid}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-300">{station.location}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-300">{station.totalSlots}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap dark:text-gray-300 flex gap-2">
                       <button
-                        className="inline-flex items-center px-4 py-2 mr-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow transition focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 transition shadow"
                         onClick={() => openEditModal(station)}
                         title="Edit"
                       >
-                        <FontAwesomeIcon icon={faPen} className="mr-2" /> Edit
+                        <FontAwesomeIcon icon={faPen} className="text-blue-600 text-lg" />
                       </button>
+                      {currentUser?.role === 'admin' && (
+                        <button
+                          className="p-2 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 transition shadow"
+                          onClick={() => setConfirmDelete({ open: true, station })}
+                          title="Delete"
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="text-red-600 text-lg" />
+                        </button>
+                      )}
                       <button
-                        className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow transition focus:outline-none focus:ring-2 focus:ring-red-400"
-                        onClick={() => setConfirmDelete({ open: true, station })}
-                        title="Delete"
+                        className="p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 transition shadow"
+                        onClick={() => openInfoModal(station)}
+                        title="View Stats"
                       >
-                        <FontAwesomeIcon icon={faTrash} className="mr-2" /> Delete
+                        <FontAwesomeIcon icon={faInfoCircle} className="text-indigo-600 text-lg" />
                       </button>
                     </td>
                   </tr>

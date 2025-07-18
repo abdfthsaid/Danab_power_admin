@@ -52,8 +52,8 @@ const Dashboard = () => {
       
       {/* Bottom Section - Stations and Revenue */}
       <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2">
-        <StationStatus />
-        <RevenueAnalytics />
+        {/* <StationStatus />
+        <RevenueAnalytics /> */}
       </div>
     </div>
   )
