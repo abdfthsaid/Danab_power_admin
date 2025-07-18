@@ -64,13 +64,14 @@ const Stations = () => {
     setEditModalOpen(false);
   };
 
+  // Update openInfoModal to use new revenue APIs and fields
   const openInfoModal = async (station) => {
     setInfoModal({ open: true, station });
     setStationStats({ loading: true, error: '', daily: null, monthly: null });
     try {
       const [dailyRes, monthlyRes] = await Promise.all([
-        axios.get(`https://danabbackend.onrender.com/api/customers/daily/${station.imei}`),
-        axios.get(`https://danabbackend.onrender.com/api/customers/monthly/${station.imei}`)
+        axios.get(`https://danabbackend.onrender.com/api/revenue/daily/${station.imei}`),
+        axios.get(`https://danabbackend.onrender.com/api/revenue/monthly/${station.imei}`)
       ]);
       setStationStats({
         loading: false,
@@ -317,12 +318,14 @@ const Stations = () => {
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
                   <span className="px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-semibold text-base flex-1 text-center shadow">
-                    Daily Customers
-                    <span className="block text-2xl font-bold mt-1">{stationStats.daily?.count ?? '-'}</span>
+                    Today's Revenue
+                    <span className="block text-2xl font-bold mt-1">${stationStats.daily?.totalRevenueToday?.toFixed(2) ?? '-'}</span>
+                    <span className="block text-xs mt-1">{stationStats.daily?.totalRentalsToday ?? '-'} rentals</span>
                   </span>
                   <span className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 font-semibold text-base flex-1 text-center shadow">
-                    Monthly Customers
-                    <span className="block text-2xl font-bold mt-1">{stationStats.monthly?.count ?? '-'}</span>
+                    Monthly Revenue
+                    <span className="block text-2xl font-bold mt-1">${stationStats.monthly?.totalRevenueMonthly?.toFixed(2) ?? '-'}</span>
+                    <span className="block text-xs mt-1">{stationStats.monthly?.totalRentalsThisMonth ?? '-'} rentals</span>
                   </span>
                 </div>
               </div>
