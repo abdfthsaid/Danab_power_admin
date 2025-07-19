@@ -12,14 +12,23 @@ import PowerBanks from './pages/PowerBanks'
 import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import StationDetails from './pages/StationDetails';
 import { useAuth } from './context/AuthContext.jsx'
 
 import './App.css'
 
 function App() {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-lg text-blue-600 dark:text-blue-300 animate-pulse">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -63,6 +72,7 @@ function App() {
                       <Route path="powerbanks" element={<PowerBanks />} />
                       <Route path="notifications" element={<Notifications />} />
                       <Route path="settings" element={<Settings />} />
+                      <Route path="/station/:imei" element={<StationDetails />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </main>

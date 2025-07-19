@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBolt } from '@fortawesome/free-solid-svg-icons';
-import { loginUser, selectLoginLoading, selectLoginError, selectLoginSuccess, resetLoginState } from '../store/usersSlice';
+import { loginUser, selectLoginLoading, selectLoginError, selectLoginSuccess, resetLoginState, selectCurrentUser } from '../store/usersSlice';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -12,6 +13,8 @@ const Login = () => {
   const loading = useSelector(selectLoginLoading);
   const error = useSelector(selectLoginError);
   const loginSuccess = useSelector(selectLoginSuccess);
+  const currentUser = useSelector(selectCurrentUser);
+  const { login: setAuthUser } = useAuth();
   const [form, setForm] = useState({ username: '', password: '' });
 
   // Reset login state on mount
@@ -20,10 +23,11 @@ const Login = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (loginSuccess) {
+    if (loginSuccess && currentUser) {
+      setAuthUser(currentUser);
       navigate('/dashboard', { replace: true });
     }
-  }, [loginSuccess, navigate]);
+  }, [loginSuccess, currentUser, setAuthUser, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

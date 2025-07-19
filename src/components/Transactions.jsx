@@ -39,8 +39,11 @@ const Transactions = ({ showAll = false, onViewAll }) => {
   }, []);
 
   const getStationName = (stationCode) => {
-    const station = stations.find(s => s.imei === stationCode);
-    return station ? station.name : stationCode;
+    if (!stationCode) return '';
+    const station = stations.find(
+      s => s.imei === stationCode || s.id === stationCode || s.name === stationCode
+    );
+    return station ? station.name : '';
   };
 
   const formatTimestamp = (timestamp) => {
@@ -99,14 +102,14 @@ const Transactions = ({ showAll = false, onViewAll }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
+      <div className="transition-colors duration-300 bg-white rounded-lg shadow dark:bg-gray-800">
         <div className="p-4 border-b dark:border-gray-700">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg dark:text-white">Recent Transactions</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold dark:text-white">Recent Transactions</h3>
           </div>
         </div>
         <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="w-8 h-8 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="mt-2 text-gray-500 dark:text-gray-400">Loading transactions...</p>
         </div>
       </div>
@@ -115,18 +118,18 @@ const Transactions = ({ showAll = false, onViewAll }) => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
+      <div className="transition-colors duration-300 bg-white rounded-lg shadow dark:bg-gray-800">
         <div className="p-4 border-b dark:border-gray-700">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg dark:text-white">Recent Transactions</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold dark:text-white">Recent Transactions</h3>
           </div>
         </div>
         <div className="p-8 text-center">
-          <div className="text-red-500 dark:text-red-400 mb-2">⚠️</div>
+          <div className="mb-2 text-red-500 dark:text-red-400">⚠️</div>
           <p className="text-red-600 dark:text-red-400">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="mt-2 text-blue-600 dark:text-blue-400 text-sm font-medium"
+            className="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400"
           >
             Try again
           </button>
@@ -136,12 +139,12 @@ const Transactions = ({ showAll = false, onViewAll }) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
+    <div className="transition-colors duration-300 bg-white rounded-lg shadow dark:bg-gray-800">
       <div className="p-4 border-b dark:border-gray-700">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold text-lg dark:text-white">Recent Transactions</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold dark:text-white">Recent Transactions</h3>
           {!showAll && transactions.length > 3 && (
-            <button className="text-blue-600 dark:text-blue-400 text-sm font-medium" onClick={onViewAll}>View All</button>
+            <button className="text-sm font-medium text-blue-600 dark:text-blue-400" onClick={onViewAll}>View All</button>
           )}
         </div>
       </div>
@@ -152,33 +155,35 @@ const Transactions = ({ showAll = false, onViewAll }) => {
           </div>
         ) : (
           visibleTransactions.map((transaction) => (
-          <div key={transaction.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200">
-            <div className="flex justify-between items-start">
+          <div key={transaction.id} className="p-4 transition-colors duration-200 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium dark:text-white">ID: {transaction.id}</p>
                 <div className="flex items-center mt-1">
                     <span className={`${getStatusClasses(transaction.status)} text-xs font-medium px-2 py-0.5 rounded-full`}>
                     {transaction.status}
                   </span>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimestamp(transaction.timestamp)}</span>
+                    <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">{formatTimestamp(transaction.timestamp)}</span>
                   </div>
                 </div>
                 <span className="font-bold dark:text-white">{formatAmount(transaction.amount)}</span>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 mt-3">
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Customer</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Customer</p>
                   <p className="font-medium dark:text-white">{formatPhoneNumber(transaction.phoneNumber)}</p>
                   <p className="text-sm dark:text-gray-300">Power Bank {transaction.battery_id}</p>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Station</p>
-                  <p className="font-medium dark:text-white">{getStationName(transaction.stationCode)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Station</p>
+                  <p className="font-medium dark:text-white">
+                    {getStationName(transaction.stationCode) || transaction.stationCode}
+                  </p>
                   <p className="text-sm">Slot: <span className="text-blue-600 dark:text-blue-400">{transaction.slot_id}</span></p>
                 </div>
             </div>
             <div className="mt-3 text-right">
-              <button className="text-blue-600 dark:text-blue-400 text-sm font-medium">View Details →</button>
+              <button className="text-sm font-medium text-blue-600 dark:text-blue-400">View Details →</button>
             </div>
           </div>
           ))

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faPen, faTrash, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import CustomAlert from '../alerts/CustomAlert';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Stations = () => {
   const [stations, setStations] = useState([]);
@@ -16,9 +17,8 @@ const Stations = () => {
   const [alert, setAlert] = useState({ open: false, message: '', type: '' });
   const [confirmDelete, setConfirmDelete] = useState({ open: false, station: null });
   const [editId, setEditId] = useState(null);
-  const [infoModal, setInfoModal] = useState({ open: false, station: null });
-  const [stationStats, setStationStats] = useState({ loading: false, error: '', daily: null, monthly: null });
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
 
   // Show custom alert
   const showAlert = (message, type) => {
@@ -62,30 +62,6 @@ const Stations = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditModalOpen(false);
-  };
-
-  // Update openInfoModal to use new revenue APIs and fields
-  const openInfoModal = async (station) => {
-    setInfoModal({ open: true, station });
-    setStationStats({ loading: true, error: '', daily: null, monthly: null });
-    try {
-      const [dailyRes, monthlyRes] = await Promise.all([
-        axios.get(`https://danabbackend.onrender.com/api/revenue/daily/${station.imei}`),
-        axios.get(`https://danabbackend.onrender.com/api/revenue/monthly/${station.imei}`)
-      ]);
-      setStationStats({
-        loading: false,
-        error: '',
-        daily: dailyRes.data,
-        monthly: monthlyRes.data
-      });
-    } catch (error) {
-      setStationStats({ loading: false, error: 'Failed to fetch stats', daily: null, monthly: null });
-    }
-  };
-  const closeInfoModal = () => {
-    setInfoModal({ open: false, station: null });
-    setStationStats({ loading: false, error: '', daily: null, monthly: null });
   };
 
   // Add new station
@@ -297,45 +273,6 @@ const Stations = () => {
           </div>
         </div>
       )}
-      {infoModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="relative w-full max-w-md p-8 bg-white shadow-2xl dark:bg-gray-800 rounded-2xl animate-fadeInUp">
-            <button
-              className="absolute text-xl text-gray-400 top-4 right-4 hover:text-indigo-600 dark:hover:text-white focus:outline-none"
-              onClick={closeInfoModal}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <h4 className="mb-4 text-2xl font-bold text-gray-800 dark:text-white">Station Stats</h4>
-            <div className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">{infoModal.station?.name}</div>
-            <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">IMEI: {infoModal.station?.imei}</div>
-            {stationStats.loading ? (
-              <div className="py-6 text-center text-gray-500 dark:text-gray-400">Loading...</div>
-            ) : stationStats.error ? (
-              <div className="py-6 text-center text-red-600 dark:text-red-400">{stationStats.error}</div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 font-semibold text-base flex-1 text-center shadow">
-                    Today's Revenue
-                    <span className="block text-2xl font-bold mt-1">${stationStats.daily?.totalRevenueToday?.toFixed(2) ?? '-'}</span>
-                    <span className="block text-xs mt-1">{stationStats.daily?.totalRentalsToday ?? '-'} rentals</span>
-                  </span>
-                  <span className="px-4 py-2 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 font-semibold text-base flex-1 text-center shadow">
-                    Monthly Revenue
-                    <span className="block text-2xl font-bold mt-1">${stationStats.monthly?.totalRevenueMonthly?.toFixed(2) ?? '-'}</span>
-                    <span className="block text-xs mt-1">{stationStats.monthly?.totalRentalsThisMonth ?? '-'} rentals</span>
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="flex justify-end mt-6">
-              <button className="px-5 py-2 text-white transition bg-indigo-600 rounded-lg hover:bg-indigo-700" onClick={closeInfoModal}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="mb-6 transition-colors duration-300 bg-white rounded-lg shadow dark:bg-gray-800">
         <div className="p-4 border-b dark:border-gray-700">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -393,7 +330,7 @@ const Stations = () => {
                       )}
                       <button
                         className="p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 transition shadow"
-                        onClick={() => openInfoModal(station)}
+                        onClick={() => navigate(`/station/${station.imei}`)}
                         title="View Stats"
                       >
                         <FontAwesomeIcon icon={faInfoCircle} className="text-indigo-600 text-lg" />
