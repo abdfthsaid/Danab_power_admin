@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faBars, 
@@ -11,6 +11,7 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom';
 
 const Topbar = ({ currentPage, setSidebarOpen }) => {
   const [notificationOpen, setNotificationOpen] = useState(false)
@@ -18,6 +19,27 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(false)
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Refs for dropdowns
+  const notificationRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const getPageTitle = () => {
     const titles = {
@@ -70,25 +92,25 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
 
     // Check for overdue rentals (transactions older than 24 hours with 'rented' status)
     const now = new Date();
-    const overdueTransactions = transactions.filter(t => {
-      if (t.status !== 'rented') return false;
-      const transactionTime = new Date(t.timestamp._seconds * 1000);
-      const hoursDiff = (now - transactionTime) / (1000 * 60 * 60);
-      return hoursDiff > 24;
-    });
+    // const overdueTransactions = transactions.filter(t => {
+    //   if (t.status !== 'rented') return false;
+    //   const transactionTime = new Date(t.timestamp._seconds * 1000);
+    //   const hoursDiff = (now - transactionTime) / (1000 * 60 * 60);
+    //   return hoursDiff > 24;
+    // });
 
-    overdueTransactions.forEach(t => {
-      const stationName = stationMap[t.stationCode] || t.stationCode;
-      notifications.push({
-        id: `overdue-${t.id}`,
-        title: 'Overdue Rental',
-        description: `Customer: ${formatPhoneNumber(t.phoneNumber)} | Power Bank: ${t.battery_id} | Station: ${stationName}`,
-        time: formatTimestamp(t.timestamp),
-        type: 'error',
-        icon: faExclamationTriangle,
-        priority: 1
-      });
-    });
+    // overdueTransactions.forEach(t => {
+    //   const stationName = stationMap[t.stationCode] || t.stationCode;
+    //   notifications.push({
+    //     id: `overdue-${t.id}`,
+    //     title: 'Overdue Rental',
+    //     description: `Customer: ${formatPhoneNumber(t.phoneNumber)} | Power Bank: ${t.battery_id} | Station: ${stationName}`,
+    //     time: formatTimestamp(t.timestamp),
+    //     type: 'error',
+    //     icon: faExclamationTriangle,
+    //     priority: 1
+    //   });
+    // });
 
     // Check for recent transactions (last 2 hours)
     const recentTransactions = transactions.filter(t => {
@@ -111,19 +133,19 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     });
 
     // Check for stations with potential issues (using real station data)
-    stations.forEach(station => {
-      if (station.name && station.name.includes('Java')) {
-        notifications.push({
-          id: `station-${station.id}`,
-          title: 'Power Bank Low Battery',
-          description: `Station: ${station.name} | Location: ${station.location}`,
-          time: '10 minutes ago',
-          type: 'warning',
-          icon: faBatteryThreeQuarters,
-          priority: 3
-        });
-      }
-    });
+    // stations.forEach(station => {
+    //   if (station.name && station.name.includes('Java')) {
+    //     notifications.push({
+    //       id: `station-${station.id}`,
+    //       title: 'Power Bank Low Battery',
+    //       description: `Station: ${station.name} | Location: ${station.location}`,
+    //       time: '10 minutes ago',
+    //       type: 'warning',
+    //       icon: faBatteryThreeQuarters,
+    //       priority: 3
+    //     });
+    //   }
+    // });
 
     // Sort by priority and time
     return notifications.sort((a, b) => {
@@ -152,14 +174,14 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     }
   };
 
-  const formatPhoneNumber = (phone) => {
-    if (!phone) return 'N/A';
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 9) {
-      return `+(252) ${cleaned}`;
-    }
-    return phone;
-  };
+  // const formatPhoneNumber = (phone) => {
+  //   if (!phone) return 'N/A';
+  //   const cleaned = phone.replace(/\D/g, '');
+  //   if (cleaned.length === 9) {
+  //     return `+(252) ${cleaned}`;
+  //   }
+  //   return phone;
+  // };
 
   const getNotificationClasses = (type) => {
     const classMap = {
@@ -177,18 +199,29 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     }
   }, [notificationOpen]);
 
+  // Fetch notifications on mount for initial badge count
+  useEffect(() => {
+    fetchNotifications();
+    // eslint-disable-next-line
+  }, []);
+
   const errorCount = notifications.filter(n => n.type === 'error').length;
+  // Count of new notifications
+  const notificationCount = notifications.length;
 
   return (
-    <header className="bg-white shadow-sm p-4 flex justify-between items-center dark:bg-gray-800 transition-colors duration-300">
+    <header className="flex items-center justify-between p-4 transition-colors duration-300 bg-white shadow-sm dark:bg-gray-800">
       <div className="flex items-center">
         <button 
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden text-gray-500 dark:text-gray-400 mr-4"
+          className="mr-4 text-gray-500 lg:hidden dark:text-gray-400"
         >
           <FontAwesomeIcon icon={faBars} className="text-xl" />
         </button>
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+        <h2
+          className="text-xl font-semibold text-gray-800 transition-colors cursor-pointer dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+          onClick={() => navigate('/dashboard')}
+        >
           {getPageTitle()}
         </h2>
       </div>
@@ -198,37 +231,38 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
           <input 
             type="text" 
             placeholder="Search..." 
-            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+            className="py-2 pl-10 pr-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
           />
           <FontAwesomeIcon 
             icon={faSearch} 
-            className="absolute left-3 top-3 text-gray-400" 
+            className="absolute text-gray-400 left-3 top-3" 
           />
         </div>
         
         <div className="flex items-center space-x-2">
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button 
               onClick={() => setNotificationOpen(!notificationOpen)}
-              className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 relative"
+              className="relative p-2 text-gray-500 rounded-lg dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <FontAwesomeIcon icon={faBell} />
-              {errorCount > 0 && (
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center z-10">
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </span>
               )}
             </button>
-            
             {notificationOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
+              <div className="absolute right-0 z-50 mt-2 bg-white rounded-md shadow-lg w-72 dark:bg-gray-800">
                 <div className="p-3 border-b dark:border-gray-700">
                   <p className="font-medium dark:text-white">Notifications</p>
                 </div>
-                <div className="divide-y dark:divide-gray-700 max-h-60 overflow-y-auto">
+                <div className="overflow-y-auto divide-y dark:divide-gray-700 max-h-60">
                   {loading ? (
                     <div className="p-4 text-center">
                       <FontAwesomeIcon icon={faSpinner} spin className="text-blue-600" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading...</p>
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
                     </div>
                   ) : notifications.length === 0 ? (
                     <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -243,13 +277,13 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
                         <div className="ml-3">
                           <p className="text-sm font-medium dark:text-white">{notification.title}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">{notification.description}</p>
-                          <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                          <p className="mt-1 text-xs text-gray-400">{notification.time}</p>
                         </div>
                       </div>
                     ))
                   )}
                 </div>
-                <div className="p-3 border-t dark:border-gray-700 text-center">
+                <div className="p-3 text-center border-t dark:border-gray-700">
                   <a href="/notifications" className="text-sm font-medium text-blue-600 dark:text-blue-400">
                     View All Notifications
                   </a>
@@ -259,25 +293,24 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
           </div>
           
           {/* User Menu */}
-          <div className="relative">
+          <div className="relative" ref={userMenuRef}>
             <button 
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center space-x-2"
             >
               {user?.profileImage ? (
-                <img src={user.profileImage} alt="User avatar" className="w-8 h-8 rounded-full object-cover" />
+                <img src={user.profileImage} alt="User avatar" className="object-cover w-8 h-8 rounded-full" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                <div className="flex items-center justify-center w-8 h-8 font-bold text-white bg-blue-500 rounded-full">
                   <span>{user?.name ? user.name.slice(0,2).toUpperCase() : 'AD'}</span>
                 </div>
               )}
             </button>
-            
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
-                <div className="py-3 px-4 border-b dark:border-gray-700">
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Logged in as</p>
-                  <div className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+              <div className="absolute right-0 z-50 w-64 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800">
+                <div className="px-4 py-3 border-b dark:border-gray-700">
+                  <p className="mb-1 text-xs text-gray-400 dark:text-gray-500">Logged in as</p>
+                  <div className="flex items-center gap-2 font-semibold text-gray-800 dark:text-white">
                     {user?.name || 'Guest'}
                     {user?.role && (
                       <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${user.role === 'admin' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
@@ -288,15 +321,15 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
                   <div className="text-sm text-gray-500 dark:text-gray-300">{user?.email || ''}</div>
                 </div>
                 <div className="py-1">
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                  {/* <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                     Your Profile
-                  </a>
+                  </a> */}
                   <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                     Settings
                   </a>
                   <button
                     onClick={logout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
                   >
                     <FontAwesomeIcon icon={faSignOutAlt} /> Logout
                   </button>

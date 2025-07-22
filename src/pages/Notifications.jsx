@@ -56,25 +56,25 @@ const Notifications = () => {
 
     // Check for overdue rentals (transactions older than 24 hours with 'rented' status)
     const now = new Date();
-    const overdueTransactions = transactions.filter(t => {
-      if (t.status !== 'rented') return false;
-      const transactionTime = new Date(t.timestamp._seconds * 1000);
-      const hoursDiff = (now - transactionTime) / (1000 * 60 * 60);
-      return hoursDiff > 24;
-    });
+    // const overdueTransactions = transactions.filter(t => {
+    //   if (t.status !== 'rented') return false;
+    //   const transactionTime = new Date(t.timestamp._seconds * 1000);
+    //   const hoursDiff = (now - transactionTime) / (1000 * 60 * 60);
+    //   return hoursDiff > 24;
+    // });
 
-    overdueTransactions.forEach(t => {
-      const stationName = stationMap[t.stationCode] || t.stationCode;
-      notifications.push({
-        id: `overdue-${t.id}`,
-        title: 'Overdue Rental',
-        description: `Customer: ${formatPhoneNumber(t.phoneNumber)} | Power Bank: ${t.battery_id} | Station: ${stationName}`,
-        time: formatTimestamp(t.timestamp),
-        type: 'error',
-        icon: faExclamationTriangle,
-        priority: 1
-      });
-    });
+    // overdueTransactions.forEach(t => {
+    //   const stationName = stationMap[t.stationCode] || t.stationCode;
+    //   notifications.push({
+    //     id: `overdue-${t.id}`,
+    //     title: 'Overdue Rental',
+    //     description: `Customer: ${formatPhoneNumber(t.phoneNumber)} | Power Bank: ${t.battery_id} | Station: ${stationName}`,
+    //     time: formatTimestamp(t.timestamp),
+    //     type: 'error',
+    //     icon: faExclamationTriangle,
+    //     priority: 1
+    //   });
+    // });
 
     // Check for recent transactions (last 2 hours)
     const recentTransactions = transactions.filter(t => {
@@ -97,31 +97,31 @@ const Notifications = () => {
     });
 
     // Check for stations with potential issues (using real station data)
-    stations.forEach(station => {
-      // Simulate some station alerts based on station data
-      if (station.name && station.name.includes('Java')) {
-        notifications.push({
-          id: `station-${station.id}`,
-          title: 'Power Bank Low Battery',
-          description: `Station: ${station.name} | Location: ${station.location}`,
-          time: '10 minutes ago',
-          type: 'warning',
-          icon: faBatteryThreeQuarters,
-          priority: 3
-        });
-      }
-    });
+    // stations.forEach(station => {
+    //   // Simulate some station alerts based on station data
+    //   if (station.name && station.name.includes('Java')) {
+    //     notifications.push({
+    //       id: `station-${station.id}`,
+    //       title: 'Power Bank Low Battery',
+    //       description: `Station: ${station.name} | Location: ${station.location}`,
+    //       time: '10 minutes ago',
+    //       type: 'warning',
+    //       icon: faBatteryThreeQuarters,
+    //       priority: 3
+    //     });
+    //   }
+    // });
 
     // Add some system notifications
-    notifications.push({
-      id: 'system-1',
-      title: 'System Maintenance',
-      description: 'Scheduled maintenance completed successfully',
-      time: '1 hour ago',
-      type: 'success',
-      icon: faCheckCircle,
-      priority: 4
-    });
+    // notifications.push({
+    //   id: 'system-1',
+    //   title: 'System Maintenance',
+    //   description: 'Scheduled maintenance completed successfully',
+    //   time: '1 hour ago',
+    //   type: 'success',
+    //   icon: faCheckCircle,
+    //   priority: 4
+    // });
 
     // Sort by priority and time
     return notifications.sort((a, b) => {
@@ -150,14 +150,14 @@ const Notifications = () => {
     }
   };
 
-  const formatPhoneNumber = (phone) => {
-    if (!phone) return 'N/A';
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 9) {
-      return `+(252) ${cleaned}`;
-    }
-    return phone;
-  };
+  // const formatPhoneNumber = (phone) => {
+  //   if (!phone) return 'N/A';
+  //   const cleaned = phone.replace(/\D/g, '');
+  //   if (cleaned.length === 9) {
+  //     return `+(252) ${cleaned}`;
+  //   }
+  //   return phone;
+  // };
 
   const getNotificationIcon = (type) => {
     const iconMap = {
@@ -190,17 +190,17 @@ const Notifications = () => {
 
   if (loading) {
     return (
-      <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+      <div className="max-w-4xl p-4 mx-auto">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold dark:text-white">All Notifications</h2>
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div key={i} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800 animate-pulse">
+              <div className="w-3/4 h-4 mb-2 bg-gray-200 rounded dark:bg-gray-700"></div>
+              <div className="w-1/2 h-3 mb-2 bg-gray-200 rounded dark:bg-gray-700"></div>
+              <div className="w-1/4 h-3 bg-gray-200 rounded dark:bg-gray-700"></div>
             </div>
           ))}
         </div>
@@ -209,12 +209,12 @@ const Notifications = () => {
   }
 
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-4xl p-4 mx-auto">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold dark:text-white">All Notifications</h2>
         <button
           onClick={fetchNotifications}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <FontAwesomeIcon icon={faRefresh} />
           <span>Refresh</span>
@@ -222,7 +222,7 @@ const Notifications = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2 mb-6">
+      <div className="flex mb-6 space-x-2">
         {[
           { key: 'all', label: 'All', color: 'gray' },
           { key: 'error', label: 'Errors', color: 'red' },
@@ -244,7 +244,7 @@ const Notifications = () => {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg">
+        <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg dark:bg-red-900 dark:text-red-300">
           <div className="flex items-center">
             <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
             {error}
@@ -254,10 +254,10 @@ const Notifications = () => {
 
       <div className="space-y-4">
         {filteredNotifications.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <FontAwesomeIcon 
               icon={getNotificationIcon(filter === 'all' ? 'info' : filter)} 
-              className="text-4xl text-gray-400 dark:text-gray-600 mb-4" 
+              className="mb-4 text-4xl text-gray-400 dark:text-gray-600" 
             />
             <p className="text-gray-500 dark:text-gray-400">
               {filter === 'all' ? 'No notifications found' : `No ${filter} notifications found`}
@@ -267,19 +267,19 @@ const Notifications = () => {
           filteredNotifications.map((notification) => (
             <div 
               key={notification.id} 
-              className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+              className="p-4 transition-shadow bg-white rounded-lg shadow dark:bg-gray-800 hover:shadow-md"
             >
               <div className="flex items-start space-x-4">
                 <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${getNotificationClasses(notification.type)}`}>
                   <FontAwesomeIcon icon={notification.icon} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
+                  <div className="flex items-start justify-between">
                     <div>
                       <p className="font-semibold dark:text-white">{notification.title}</p>
-                      <p className="text-gray-500 dark:text-gray-400 mt-1">{notification.description}</p>
+                      <p className="mt-1 text-gray-500 dark:text-gray-400">{notification.description}</p>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-4">
+                    <span className="ml-4 text-xs text-gray-400 dark:text-gray-500">
                       {notification.time}
                     </span>
                   </div>
