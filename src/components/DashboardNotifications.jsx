@@ -95,31 +95,31 @@ const DashboardNotifications = ({ showAll = false, onViewAll }) => {
     });
 
     // Check for stations with potential issues (using real station data)
-    stations.forEach(station => {
-      // Simulate some station alerts based on station data
-      if (station.name && station.name.includes('Java')) {
-        notifications.push({
-          id: `station-${station.id}`,
-          title: 'Power Bank Low Battery',
-          description: `Station: ${station.name} | Location: ${station.location}`,
-          time: '10 minutes ago',
-          type: 'warning',
-          icon: faBatteryThreeQuarters,
-          priority: 3
-        });
-      }
-    });
+    // stations.forEach(station => {
+    //   // Simulate some station alerts based on station data
+    //   if (station.name && station.name.includes('Java')) {
+    //     notifications.push({
+    //       id: `station-${station.id}`,
+    //       title: 'Power Bank Low Battery',
+    //       description: `Station: ${station.name} | Location: ${station.location}`,
+    //       time: '10 minutes ago',
+    //       type: 'warning',
+    //       icon: faBatteryThreeQuarters,
+    //       priority: 3
+    //     });
+    //   }
+    // });
 
     // Add some system notifications
-    notifications.push({
-      id: 'system-1',
-      title: 'System Maintenance',
-      description: 'Scheduled maintenance completed successfully',
-      time: '1 hour ago',
-      type: 'success',
-      icon: faCheckCircle,
-      priority: 4
-    });
+    // notifications.push({
+    //   id: 'system-1',
+    //   title: 'System Maintenance',
+    //   description: 'Scheduled maintenance completed successfully',
+    //   time: '1 hour ago',
+    //   type: 'success',
+    //   icon: faCheckCircle,
+    //   priority: 4
+    // });
 
     // Sort by priority and time
     return notifications.sort((a, b) => {
