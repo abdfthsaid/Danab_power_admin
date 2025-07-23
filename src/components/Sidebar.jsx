@@ -98,7 +98,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         ))}
         
-        <div className="pt-4 mt-8 border-t dark:border-gray-700">
+        {/* <div className="pt-4 mt-8 border-t dark:border-gray-700">
           <button
             onClick={() => {
               navigate('/settings');
@@ -113,7 +113,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <FontAwesomeIcon icon={faUserCog} className="mr-3" />
             <span>Profile & Settings</span>
           </button>
-        </div>
+        </div> */}
       </nav>
     </div>
   )
