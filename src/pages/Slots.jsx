@@ -57,12 +57,21 @@ const SlotCard = ({ slot }) => {
       <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
         Status: {statusText}
         {isOccupied && slot.phoneNumber && (
-          <>
-            <div className="text-blue-600 dark:text-blue-400">Phone: {slot.phoneNumber}</div>
-            {slot.rentedAt?._seconds && (
-              <div className="text-green-600 dark:text-green-400">Rented: {timeAgo(slot.rentedAt._seconds)}</div>
-            )}
-          </>
+         <div className="mt-2 space-y-1 text-xs">
+  {slot.phoneNumber && (
+    <div className="flex items-center gap-2 px-2 py-1 text-blue-600 rounded-lg bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400">
+      <FaPhoneAlt className="text-sm" />
+      <span>{slot.phoneNumber}</span>
+    </div>
+  )}
+  {slot.rentedAt?._seconds && (
+    <div className="flex items-center gap-2 px-2 py-1 text-green-600 rounded-lg bg-green-50 dark:bg-green-900/30 dark:text-green-400">
+      <FaClock className="text-sm" />
+      <span>Rented: {timeAgo(slot.rentedAt._seconds)}</span>
+    </div>
+  )}
+</div>
+
         )}
       </div>
 
@@ -110,12 +119,19 @@ const Slots = () => {
       try {
         const res = await fetch(`https://danabbackend.onrender.com/api/stations/stats/${selected}`);
         const data = await res.json();
-        setSlots(Array.isArray(data.batteries) ? data.batteries : []);
-        setStats({
-          total: data.totalSlots || 0,
-          available: data.availableCount || 0,
-          rented: data.rentedCount || 0
-        });
+
+        if (data.station_status === 'Offline') {
+          setError(`Station "${data.name}" is currently offline`);
+          setSlots([]);
+          setStats({ total: 0, available: 0, rented: 0 });
+        } else {
+          setSlots(Array.isArray(data.batteries) ? data.batteries : []);
+          setStats({
+            total: data.totalSlots || 0,
+            available: data.availableCount || 0,
+            rented: data.rentedCount || 0
+          });
+        }
       } catch {
         setError('Failed to load slots');
       } finally {
@@ -138,20 +154,6 @@ const Slots = () => {
     { label: 'Occupied', value: stats.rented || slots.filter(s => s.rented).length, icon: <FaLock className="text-purple-500" /> },
     { label: 'Error', value: slots.filter(s => s.status !== 'Online').length, icon: <FaExclamationTriangle className="text-red-500" /> },
   ];
-
-  function formatPhoneNumber(phoneNumber) {
-  // Remove all non-digit characters
-  const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-  
-  // Format as (XXX) XXX-XXXX
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `(${match[1]}) ${match[2]}-${match[3]}`;
-  }
-  
-  return phoneNumber; // Return original if formatting fails
-}
-
 
   return (
     <div className="max-w-3xl p-4 mx-auto">
@@ -191,118 +193,40 @@ const Slots = () => {
         {statCards.map(stat => <StatCard key={stat.label} {...stat} />)}
       </div>
 
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-semibold dark:text-white">Slot Status</span>
-        <div className="flex p-1 space-x-2 bg-gray-100 rounded-lg dark:bg-gray-800">
-          {['grid', 'list'].map(v => (
-            <button key={v}
-              className={`px-3 py-1 text-sm rounded-lg font-medium ${view === v ? 'bg-white dark:bg-gray-900 shadow' : ''}`}
-              onClick={() => setView(v)}>
-              {v.charAt(0).toUpperCase() + v.slice(1)} View
-            </button>
+      {loading ? (
+        <div className="py-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+      ) : error ? (
+        <div className="py-8 text-center text-red-600 dark:text-red-400">{error}</div>
+      ) : view === 'grid' ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {filtered.map(s => <SlotCard key={s.slot_id} slot={s} />)}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filtered.map(s => (
+            <div key={s.slot_id} className="flex flex-col justify-between p-5 transition bg-white border border-gray-200 shadow sm:flex-row sm:items-center rounded-xl dark:bg-gray-900 dark:border-gray-700 hover:shadow-lg">
+              <div className="space-y-3">
+                <h4 className="text-xl font-bold text-gray-900 dark:text-white">Slot #{s.slot_id}</h4>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md 
+                  ${s.rented 
+                    ? 'text-yellow-800 bg-yellow-100 dark:bg-yellow-800 dark:text-yellow-100' 
+                    : 'text-green-800 bg-green-100 dark:bg-green-800 dark:text-green-100'}`}>
+                  {s.rented ? <FaLock className="text-sm" /> : <FaUnlockAlt className="text-sm" />}
+                  {s.rented ? 'Occupied' : 'Available'}
+                </div>
+              </div>
+              <div className="mt-4 sm:mt-0 sm:ml-4">
+                <button className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium shadow transition w-full sm:w-auto min-w-[120px]
+                  ${s.rented
+                    ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'}`}>
+                  {s.rented ? <><FaUnlockAlt /><span>Unlock</span></> : <><FaLock /><span>Lock</span></>}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-             
-             {loading ? (
-  <div className="py-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
-) : error ? (
-  <div className="py-8 text-center text-red-600 dark:text-red-400">{error}</div>
-) : view === 'grid' ? (
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-    {filtered.map(s => <SlotCard key={s.slot_id} slot={s} />)}
-  </div>
-) : (
-  <div className="space-y-4">
-    {filtered.map(s => (
-      <div
-        key={s.slot_id}
-        className="flex flex-col justify-between p-5 transition bg-white border border-gray-200 shadow sm:flex-row sm:items-center rounded-xl dark:bg-gray-900 dark:border-gray-700 hover:shadow-lg"
-      >
-        {/* Left side info */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xl font-bold text-gray-900 dark:text-white">
-              Slot #{s.slot_id}
-            </h4>
-            
-            {/* Status Badge */}
-            <div className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md 
-              ${s.rented 
-                ? 'text-yellow-800 bg-yellow-100 dark:bg-yellow-800 dark:text-yellow-100' 
-                : 'text-green-800 bg-green-100 dark:bg-green-800 dark:text-green-100'}`}>
-              {s.rented ? <FaLock className="text-sm" /> : <FaUnlock className="text-sm" />}
-              {s.rented ? 'Occupied' : 'Available'}
-            </div>
-          </div>
-
-          {/* Battery Info */}
-          <div className="flex items-center gap-3">
-            <div className="relative w-24 h-2.5 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
-              <div 
-                className={`absolute top-0 left-0 h-full rounded-full ${
-                  s.level > 70 ? 'bg-green-500' : 
-                  s.level > 30 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${s.level}%` }}
-              ></div>
-            </div>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {s.level}%
-            </span>
-          </div>
-
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-semibold text-gray-800 dark:text-white">Battery ID:</span> {s.battery_id}
-          </p>
-
-          {/* Additional Info Container */}
-          <div className="flex flex-wrap gap-2">
-            {/* Phone Number Badge - Improved */}
-            {s.phoneNumber && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 border border-blue-200 dark:border-blue-800 shadow-sm">
-                <FaPhoneAlt className="text-blue-600 dark:text-blue-300" />
-                <span className="font-mono tracking-tight">{formatPhoneNumber(s.phoneNumber)}</span>
-              </div>
-            )}
-
-            {/* Rented Time Badge - Improved */}
-            {s.rentedAt?._seconds && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-purple-50 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200 border border-purple-200 dark:border-purple-800 shadow-sm">
-                <FaClock className="text-purple-600 dark:text-purple-300" />
-                <span className="whitespace-nowrap">
-                  {formatRentedTime(s.rentedAt._seconds)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Action Button */}
-        <div className="mt-4 sm:mt-0 sm:ml-4">
-          <button
-            className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium shadow transition w-full sm:w-auto min-w-[120px]
-              ${s.rented
-                ? 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800'
-                : 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'}`}
-          >
-            {s.rented ? (
-              <>
-                <FaUnlockAlt />
-                <span>Unlock</span>
-              </>
-            ) : (
-              <>
-                <FaLock />
-                <span>Lock</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    ))}
-  </div>
-)}    
+      )}
     </div>
   );
 };
