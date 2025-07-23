@@ -177,14 +177,14 @@ const Transactions = ({ showAll = false, onViewAll }) => {
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Station</p>
                   <p className="font-medium dark:text-white">
-                    {getStationName(transaction.stationCode) || transaction.stationCode}
+                    {getStationName(transaction.stationName) || transaction.stationName || 'Unknown Station'}
                   </p>
                   <p className="text-sm">Slot: <span className="text-blue-600 dark:text-blue-400">{transaction.slot_id}</span></p>
                 </div>
             </div>
-            <div className="mt-3 text-right">
+            {/* <div className="mt-3 text-right">
               <button className="text-sm font-medium text-blue-600 dark:text-blue-400">View Details →</button>
-            </div>
+            </div> */}
           </div>
           ))
         )}

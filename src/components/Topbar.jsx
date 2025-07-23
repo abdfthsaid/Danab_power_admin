@@ -120,11 +120,11 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     });
 
     recentTransactions.forEach(t => {
-      const stationName = stationMap[t.stationCode] || t.stationCode;
+      // const stationName = stationMap[t.stationCode] || t.stationCode;
       notifications.push({
         id: `recent-${t.id}`,
         title: 'New Transaction',
-        description: `Station: ${stationName} | Amount: $${t.amount} | Power Bank: ${t.battery_id}`,
+        description: `Station: ${t.stationName} | Amount: $${t.amount} | Power Bank: ${t.battery_id}`,
         time: formatTimestamp(t.timestamp),
         type: 'success',
         icon: faCheckCircle,
