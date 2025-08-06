@@ -8,23 +8,43 @@ import {
   faExclamationTriangle,
   faCheckCircle,
   faSignOutAlt,
-  faSpinner
+  faSpinner,
+  faStore,
+  faUsers,
+  faExchangeAlt,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import { apiService } from '../api/apiConfig';
+import { isAdmin, getUserDisplayRole } from '../utils/roleUtils';
 
 const Topbar = ({ currentPage, setSidebarOpen }) => {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(false)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [allData, setAllData] = useState({
+    stations: [],
+    users: [],
+    transactions: []
+  })
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+
+  // Check if user is admin using utility function
+  const userIsAdmin = isAdmin(user)
 
   // Refs for dropdowns
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
+  const searchRef = useRef(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -35,6 +55,9 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -42,19 +65,148 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     };
   }, []);
 
+  // Fetch all data for search
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        setSearchLoading(true);
+        const [stationsRes, usersRes, transactionsRes] = await Promise.all([
+          apiService.getStations(),
+          apiService.getUsers(),
+          apiService.getLatestTransactions()
+        ]);
+
+        setAllData({
+          stations: stationsRes.data.stations || [],
+          users: usersRes.data || [],
+          transactions: transactionsRes.data || []
+        });
+      } catch (err) {
+        console.error('Error fetching search data:', err);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Search functionality
+  const performSearch = (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const results = [];
+    const searchTerm = query.toLowerCase();
+
+    // Search in stations
+    allData.stations.forEach(station => {
+      if (
+        station.name?.toLowerCase().includes(searchTerm) ||
+        station.location?.toLowerCase().includes(searchTerm) ||
+        station.imei?.toLowerCase().includes(searchTerm) ||
+        station.id?.toString().includes(searchTerm)
+      ) {
+        results.push({
+          type: 'station',
+          id: station.id,
+          title: station.name,
+          subtitle: station.location,
+          icon: faStore,
+          data: station
+        });
+      }
+    });
+
+    // Search in users (admin only)
+    if (userIsAdmin) {
+      allData.users.forEach(user => {
+        if (
+          user.username?.toLowerCase().includes(searchTerm) ||
+          user.email?.toLowerCase().includes(searchTerm) ||
+          user.fullName?.toLowerCase().includes(searchTerm) ||
+          user.role?.toLowerCase().includes(searchTerm)
+        ) {
+          results.push({
+            type: 'user',
+            id: user.id,
+            title: user.username || user.fullName,
+            subtitle: user.email || user.role,
+            icon: faUsers,
+            data: user
+          });
+        }
+      });
+    }
+
+    // Search in transactions
+    allData.transactions.forEach(transaction => {
+      if (
+        transaction.id?.toString().includes(searchTerm) ||
+        transaction.stationName?.toLowerCase().includes(searchTerm) ||
+        transaction.battery_id?.toLowerCase().includes(searchTerm) ||
+        transaction.phoneNumber?.includes(searchTerm) ||
+        transaction.status?.toLowerCase().includes(searchTerm) ||
+        transaction.amount?.toString().includes(searchTerm)
+      ) {
+        results.push({
+          type: 'transaction',
+          id: transaction.id,
+          title: `Transaction #${transaction.id}`,
+          subtitle: `${transaction.stationName} - $${transaction.amount}`,
+          icon: faExchangeAlt,
+          data: transaction
+        });
+      }
+    });
+
+    setSearchResults(results.slice(0, 10)); // Limit to 10 results
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    performSearch(query);
+    setSearchOpen(query.length > 0);
+  };
+
+  // Handle search result click
+  const handleSearchResultClick = (result) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchOpen(false);
+
+    switch (result.type) {
+      case 'station':
+        navigate(`/station/${result.data.imei}`);
+        break;
+      case 'user':
+        navigate('/users');
+        break;
+      case 'transaction':
+        navigate('/dashboard');
+        break;
+      default:
+        break;
+    }
+  };
+
   const getPageTitle = () => {
     const titles = {
-      dashboard: 'Dashboard',
-      stations: 'Stations',
-      slots: 'Slot Management',
-      revenue: 'Revenue Analytics',
+      dashboard: t('dashboard'),
+      stations: t('stations'),
+      slots: t('slots'),
+      revenue: t('revenue'),
       rentals: 'Active Rentals',
-      users: 'Users',
+      users: t('users'),
       powerbanks: 'Power Banks',
-      notifications: 'Notifications',
-      settings: 'Profile & Settings'
+      notifications: t('notifications'),
+      settings: t('settings')
     }
-    return titles[currentPage] || 'Dashboard'
+    return titles[currentPage] || t('dashboard')
   }
 
   const fetchNotifications = async () => {
@@ -228,20 +380,109 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
       </div>
       
       <div className="flex items-center space-x-4">
-        <div className="relative hidden md:block">
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="py-2 pl-10 pr-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-          />
-          <FontAwesomeIcon 
-            icon={faSearch} 
-            className="absolute text-gray-400 left-3 top-3" 
-          />
+        {/* Search Bar - Desktop */}
+        <div className="relative hidden md:block" ref={searchRef}>
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder={t('search')} 
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="py-2 pl-10 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+            />
+            <FontAwesomeIcon 
+              icon={faSearch} 
+              className="absolute text-gray-400 left-3 top-3" 
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchResults([]);
+                  setSearchOpen(false);
+                }}
+                className="absolute text-gray-400 right-3 top-3 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            )}
+          </div>
+          
+          {/* Search Results Dropdown */}
+          {searchOpen && (
+            <div className="absolute right-0 z-50 mt-2 bg-white rounded-md shadow-lg w-96 dark:bg-gray-800 max-h-96 overflow-y-auto">
+              <div className="p-3 border-b dark:border-gray-700">
+                <p className="font-medium dark:text-white">
+                  {searchLoading ? t('loading') : `${searchResults.length} ${t('search')} ${t('results')}`}
+                </p>
+              </div>
+              <div className="divide-y dark:divide-gray-700">
+                {searchLoading ? (
+                  <div className="p-4 text-center">
+                    <FontAwesomeIcon icon={faSpinner} spin className="text-blue-600" />
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('loading')}</p>
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                    {searchQuery ? t('noDataFound') : t('search')}
+                  </div>
+                ) : (
+                  searchResults.map((result) => (
+                    <button
+                      key={`${result.type}-${result.id}`}
+                      onClick={() => handleSearchResultClick(result)}
+                      className="w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                          <FontAwesomeIcon icon={result.icon} className="text-blue-600 dark:text-blue-400 text-sm" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium dark:text-white truncate">
+                            {result.title}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                            {result.subtitle}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            result.type === 'station' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                            result.type === 'user' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                          }`}>
+                            {result.type}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Mobile Search Button */}
+        <button
+          onClick={() => {
+            // For mobile, we could open a modal or navigate to a search page
+            // For now, let's just focus the search input if it exists
+            const searchInput = document.querySelector('input[placeholder*="Search"]');
+            if (searchInput) {
+              searchInput.focus();
+            } else {
+              // If no search input, show a simple alert with search tips
+              alert(`${t('search')} ${t('tips')}:\n- Station names\n- User names\n- Transaction IDs\n- Power bank IDs`);
+            }
+          }}
+          className="md:hidden p-2 text-gray-500 rounded-lg dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <FontAwesomeIcon icon={faSearch} />
+        </button>
         
         <div className="flex items-center space-x-2">
-          {/* Notifications */}
+          {/* Notifications - Show for all users but with different content based on role */}
           <div className="relative" ref={notificationRef}>
             <button 
               onClick={() => setNotificationOpen(!notificationOpen)}
@@ -257,13 +498,16 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
             {notificationOpen && (
               <div className="absolute right-0 z-50 mt-2 bg-white rounded-md shadow-lg w-72 dark:bg-gray-800">
                 <div className="p-3 border-b dark:border-gray-700">
-                  <p className="font-medium dark:text-white">Notifications</p>
+                  <p className="font-medium dark:text-white">{t('notifications')}</p>
+                  {!userIsAdmin && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Limited view for regular users</p>
+                  )}
                 </div>
                 <div className="overflow-y-auto divide-y dark:divide-gray-700 max-h-60">
                   {loading ? (
                     <div className="p-4 text-center">
                       <FontAwesomeIcon icon={faSpinner} spin className="text-blue-600" />
-                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('loading')}</p>
                     </div>
                   ) : notifications.length === 0 ? (
                     <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -286,7 +530,7 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
                 </div>
                 <div className="p-3 text-center border-t dark:border-gray-700">
                   <a href="/notifications" className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    View All Notifications
+                    {t('viewAll')} {t('notifications')}
                   </a>
                 </div>
               </div>
@@ -297,42 +541,43 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
           <div className="relative" ref={userMenuRef}>
             <button 
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 p-2 text-gray-500 rounded-lg dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              {user?.profileImage ? (
-                <img src={user.profileImage} alt="User avatar" className="object-cover w-8 h-8 rounded-full" />
-              ) : (
-                <div className="flex items-center justify-center w-8 h-8 font-bold text-white bg-blue-500 rounded-full">
-                  <span>{user?.name ? user.name.slice(0,2).toUpperCase() : 'AD'}</span>
-                </div>
-              )}
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                {user?.username?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <span className="hidden md:block text-sm font-medium dark:text-white">
+                {user?.username || 'User'}
+              </span>
             </button>
             {userMenuOpen && (
-              <div className="absolute right-0 z-50 w-64 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800">
-                <div className="px-4 py-3 border-b dark:border-gray-700">
-                  <p className="mb-1 text-xs text-gray-400 dark:text-gray-500">Logged in as</p>
-                  <div className="flex items-center gap-2 font-semibold text-gray-800 dark:text-white">
-                    {user?.name || 'Guest'}
-                    {user?.role && (
-                      <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${user.role === 'admin' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-300">{user?.email || ''}</div>
+              <div className="absolute right-0 z-50 mt-2 bg-white rounded-md shadow-lg w-48 dark:bg-gray-800">
+                <div className="p-3 border-b dark:border-gray-700">
+                  <p className="font-medium dark:text-white">{user?.username || 'User'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {getUserDisplayRole(user)}
+                  </p>
                 </div>
                 <div className="py-1">
-                  {/* <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
-                    Your Profile
-                  </a> */}
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
-                    Settings
-                  </a>
                   <button
-                    onClick={logout}
-                    className="flex items-center w-full gap-2 px-4 py-2 text-sm text-left text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                    onClick={() => {
+                      navigate('/settings');
+                      setUserMenuOpen(false);
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+                    {t('settings')}
+                  </button>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setUserMenuOpen(false);
+                      navigate('/login');
+                    }}
+                    className="block w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+                    {t('signOut')}
                   </button>
                 </div>
               </div>

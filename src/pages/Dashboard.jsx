@@ -4,10 +4,12 @@ import StationStatus from '../components/StationStatus'
 import RevenueAnalytics from '../components/RevenueAnalytics'
 import Transactions from '../components/Transactions';
 import DashboardNotifications from '../components/DashboardNotifications';
+import { useLanguage } from '../context/LanguageContext';
 
 import { useState } from 'react'
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   const [showAllNotifications, setShowAllNotifications] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
 
@@ -30,7 +32,7 @@ const Dashboard = () => {
               className="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400"
               onClick={() => setShowAllTransactions(false)}
             >
-              Show Less
+              {t('show')} {t('less')}
             </button>
           )}
         </div>
@@ -44,7 +46,7 @@ const Dashboard = () => {
               className="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400"
               onClick={() => setShowAllNotifications(false)}
             >
-              Show Less
+              {t('show')} {t('less')}
             </button>
           )}
         </div>

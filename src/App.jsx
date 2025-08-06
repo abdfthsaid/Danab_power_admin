@@ -13,7 +13,9 @@ import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import StationDetails from './pages/StationDetails';
+import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext.jsx'
+import { LanguageProvider } from './context/LanguageContext';
 
 import './App.css'
 
@@ -31,60 +33,70 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/*"
-          element={
-            user ? (
-              <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-                {/* Mobile Sidebar Overlay */}
-                {sidebarOpen && (
-                  <div 
-                    className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                  />
-                )}
-                
-                {/* Sidebar */}
-                <Sidebar 
-                  currentPage={currentPage} 
-                  setCurrentPage={setCurrentPage}
-                  sidebarOpen={sidebarOpen}
-                  setSidebarOpen={setSidebarOpen}
-                />
-
-                {/* Main Content */}
-                <div className="flex-1 overflow-auto">
-                  <Topbar 
-                    currentPage={currentPage}
+    <LanguageProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/*"
+            element={
+              user ? (
+                <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+                  {/* Mobile Sidebar Overlay */}
+                  {sidebarOpen && (
+                    <div 
+                      className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+                      onClick={() => setSidebarOpen(false)}
+                    />
+                  )}
+                  
+                  {/* Sidebar */}
+                  <Sidebar 
+                    currentPage={currentPage} 
+                    setCurrentPage={setCurrentPage}
+                    sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
                   />
-                  <main className="flex-1">
-                    <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="stations" element={<Stations />} />
-                      <Route path="slots" element={<Slots />} />
-                      <Route path="revenue" element={<Revenue />} />
-                      <Route path="rentals" element={<Rentals />} />
-                      <Route path="users" element={<Users />} />
-                      <Route path="powerbanks" element={<PowerBanks />} />
-                      <Route path="notifications" element={<Notifications />} />
-                      <Route path="settings" element={<Settings />} />
-                      <Route path="/station/:imei" element={<StationDetails />} />
-                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                    </Routes>
-                  </main>
+
+                  {/* Main Content */}
+                  <div className="flex-1 overflow-auto">
+                    <Topbar 
+                      currentPage={currentPage}
+                      setSidebarOpen={setSidebarOpen}
+                    />
+                    <main className="flex-1">
+                      <Routes>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="stations" element={<Stations />} />
+                        <Route path="slots" element={<Slots />} />
+                        <Route path="revenue" element={
+                          <ProtectedRoute adminOnly={true}>
+                            <Revenue />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="rentals" element={<Rentals />} />
+                        <Route path="users" element={
+                          <ProtectedRoute adminOnly={true}>
+                            <Users />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="powerbanks" element={<PowerBanks />} />
+                        <Route path="notifications" element={<Notifications />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="/station/:imei" element={<StationDetails />} />
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                      </Routes>
+                    </main>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-      </Routes>
-    </Router>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </Router>
+    </LanguageProvider>
   )
 }
 

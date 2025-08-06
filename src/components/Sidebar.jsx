@@ -15,40 +15,75 @@ import {
   faTimes
 } from '@fortawesome/free-solid-svg-icons'
 import { useDarkMode } from '../context/DarkModeContext'
+import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
 import { useNavigate, useLocation } from 'react-router-dom';
+import { isAdmin, getUserDisplayRole } from '../utils/roleUtils';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { dark, setDark } = useDarkMode()
+  const { user } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate();
   const location = useLocation();
 
   const toggleDarkMode = () => setDark((d) => !d)
 
-  const navigationItems = [
-    {
-      section: 'OVERVIEW',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', icon: faTachometerAlt }
+  // Check if user is admin using utility function
+  const userIsAdmin = isAdmin(user)
+
+  // Define navigation items based on user role
+  const getNavigationItems = () => {
+    const baseItems = [
+      {
+        section: 'OVERVIEW',
+        items: [
+          { id: 'dashboard', label: t('dashboard'), icon: faTachometerAlt }
+        ]
+      }
+    ]
+
+    if (userIsAdmin) {
+      // Admin sees all sections
+      return [
+        ...baseItems,
+        {
+          section: 'OPERATIONS',
+          items: [
+            { id: 'stations', label: t('stations'), icon: faStore },
+            { id: 'slots', label: t('slots'), icon: faBatteryThreeQuarters },
+            { id: 'revenue', label: t('revenue'), icon: faChartLine },
+            // { id: 'rentals', label: t('rentals'), icon: faExchangeAlt }
+          ]
+        },
+        {
+          section: 'MANAGEMENT',
+          items: [
+            { id: 'users', label: t('users'), icon: faUsers },
+            // { id: 'powerbanks', label: t('powerbanks'), icon: faBatteryFull },
+            // { id: 'notifications', label: t('notifications'), icon: faBell }
+          ]
+        }
       ]
-    },
-    {
-      section: 'OPERATIONS',
-      items: [
-        { id: 'stations', label: 'Stations', icon: faStore },
-        { id: 'slots', label: 'Slot Management', icon: faBatteryThreeQuarters },
-        { id: 'revenue', label: 'Revenue Analytics', icon: faChartLine },
-        // { id: 'rentals', label: 'Active Rentals', icon: faExchangeAlt }
-      ]
-    },
-    {
-      section: 'MANAGEMENT',
-      items: [
-        { id: 'users', label: 'Users', icon: faUsers },
-        // { id: 'powerbanks', label: 'Power Banks', icon: faBatteryFull },
-        // { id: 'notifications', label: 'Notifications', icon: faBell }
+    } else {
+      // Regular users see limited sections
+      return [
+        ...baseItems,
+        {
+          section: 'OPERATIONS',
+          items: [
+            { id: 'stations', label: t('stations'), icon: faStore },
+            { id: 'slots', label: t('slots'), icon: faBatteryThreeQuarters },
+            // Regular users don't see revenue analytics
+            // { id: 'revenue', label: t('revenue'), icon: faChartLine },
+          ]
+        }
+        // Regular users don't see management section
       ]
     }
-  ]
+  }
+
+  const navigationItems = getNavigationItems()
 
   const getPath = (id) => `/${id}`;
 
@@ -70,10 +105,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
-        {/* danabbackend */}
       </div>
       
-      <nav className="p-4 h-[calc(100%-64px)] overflow-y-auto">
+      {/* User Role Indicator */}
+      <div className="px-4 py-2 border-b dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Logged in as: <span className="font-medium text-gray-800 dark:text-white">{user?.username || 'User'}</span>
+          </span>
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+            userIsAdmin 
+              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' 
+              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+          }`}>
+            {getUserDisplayRole(user)}
+          </span>
+        </div>
+      </div>
+      
+      <nav className="p-4 h-[calc(100%-120px)] overflow-y-auto">
         {navigationItems.map((section) => (
           <div key={section.section} className="mb-6">
             <h2 className="mb-2 text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
@@ -99,7 +149,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         ))}
         
-        {/* <div className="pt-4 mt-8 border-t dark:border-gray-700">
+        {/* Settings section - available for all users */}
+        <div className="pt-4 mt-8 border-t dark:border-gray-700">
           <button
             onClick={() => {
               navigate('/settings');
@@ -112,9 +163,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             }`}
           >
             <FontAwesomeIcon icon={faUserCog} className="mr-3" />
-            <span>Profile & Settings</span>
+            <span>{t('settings')}</span>
           </button>
-        </div> */}
+        </div>
       </nav>
     </div>
   )
