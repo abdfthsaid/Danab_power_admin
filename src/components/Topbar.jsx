@@ -12,6 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom';
+import { apiService } from '../api/apiConfig';
 
 const Topbar = ({ currentPage, setSidebarOpen }) => {
   const [notificationOpen, setNotificationOpen] = useState(false)
@@ -60,14 +61,14 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     try {
       setLoading(true);
       
-      // Fetch data from multiple endpoints
+      // Fetch data from multiple endpoints using apiService
       const [transactionsRes, stationsRes] = await Promise.all([
-        fetch('https://danabbackend.onrender.com/api/transactions/latest'),
-        fetch('https://danabbackend.onrender.com/api/stations/basic')
+        apiService.getLatestTransactions(),
+        apiService.getStations()
       ]);
 
-      const transactions = await transactionsRes.json();
-      const stationsData = await stationsRes.json();
+      const transactions = transactionsRes.data;
+      const stationsData = stationsRes.data;
       const stations = stationsData.stations || [];
 
       // Create a map of station codes to station names

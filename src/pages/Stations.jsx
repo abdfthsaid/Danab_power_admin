@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService } from '../api/apiConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faPen, faTrash, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import CustomAlert from '../alerts/CustomAlert';
@@ -28,7 +28,7 @@ const Stations = () => {
 
   // Fetch all stations
   const fetchStations = async () => {
-    const response = await axios.get('https://danabbackend.onrender.com/api/stations/basic');
+    const response = await apiService.getStations();
     setStations(response.data.stations || []);
     setFilteredStations(response.data.stations || []);
   };
@@ -68,7 +68,7 @@ const Stations = () => {
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://danabbackend.onrender.com/api/stations/add', {
+      await apiService.addStation({
         imei: form.imei,
         name: form.name,
         iccid: form.iccid,
@@ -94,16 +94,13 @@ const Stations = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        `https://danabbackend.onrender.com/api/stations/update/${editId}`,
-        {
-          imei: form.imei,
-          name: form.name,
-          iccid: form.iccid,
-          location: form.location,
-          totalSlots: Number(form.totalSlots)
-        }
-      );
+      await apiService.updateStation(editId, {
+        imei: form.imei,
+        name: form.name,
+        iccid: form.iccid,
+        location: form.location,
+        totalSlots: Number(form.totalSlots)
+      });
       showAlert('Station updated successfully!', 'success');
       setTimeout(() => {
         closeModal();
@@ -136,7 +133,7 @@ const Stations = () => {
   const handleDelete = async () => {
     if (!confirmDelete.station) return;
     try {
-      await axios.delete(`https://danabbackend.onrender.com/api/stations/delete/${confirmDelete.station.imei}`);
+      await apiService.deleteStation(confirmDelete.station.imei);
       showAlert('Station deleted successfully!', 'error');
       setTimeout(() => {
         setConfirmDelete({ open: false, station: null });

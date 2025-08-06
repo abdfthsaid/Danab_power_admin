@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiService } from '../api/apiConfig';
 
 const Transactions = ({ showAll = false, onViewAll }) => {
   const [transactions, setTransactions] = useState([]);
@@ -14,16 +15,12 @@ const Transactions = ({ showAll = false, onViewAll }) => {
         
         // Fetch both transactions and stations data
         const [transactionsRes, stationsRes] = await Promise.all([
-          fetch('https://danabbackend.onrender.com/api/transactions/latest'),
-          fetch('https://danabbackend.onrender.com/api/stations/basic')
+          apiService.getLatestTransactions(),
+          apiService.getStations()
         ]);
 
-        const transactionsData = await transactionsRes.json();
-        const stationsData = await stationsRes.json();
-        
-        if (!transactionsRes.ok) {
-          throw new Error(transactionsData.error || 'Failed to fetch transactions');
-        }
+        const transactionsData = transactionsRes.data;
+        const stationsData = stationsRes.data;
         
         setTransactions(transactionsData);
         setStations(stationsData.stations || []);

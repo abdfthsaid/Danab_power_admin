@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faUser, faTimes, faCheck, faTrash, faPen } from '@fortawesome/free-solid-svg-icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUsers, selectPermissions, selectUsersLoading, selectUsersError, fetchUsers } from '../store/usersSlice';
+import { apiService } from '../api/apiConfig';
 import CustomAlert from '../alerts/CustomAlert';
 import { useAuth } from '../context/AuthContext';
 
@@ -76,21 +77,13 @@ const Users = () => {
     setModalLoading(true);
     setModalError('');
     try {
-      const res = await fetch('https://danabbackend.onrender.com/api/users/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: form.username,
-          password: form.password,
-          email: form.email,
-          role: form.role.toLowerCase(),
-          permissions: form.permissions
-        })
+      const response = await apiService.addUser({
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        role: form.role.toLowerCase(),
+        permissions: form.permissions
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to register user ❌');
-      }
       setSuccess(true);
       setForm({ username: '', password: '', email: '', role: 'User', permissions: [] });
       dispatch(fetchUsers());
@@ -100,8 +93,9 @@ const Users = () => {
         setModalOpen(false);
       }, 1500);
     } catch (err) {
-      setModalError(err.message || 'Something went wrong ❌');
-      showAlert(err.message || 'Something went wrong ❌', 'error');
+      const errorMessage = err.response?.data?.message || err.message || 'Something went wrong ❌';
+      setModalError(errorMessage);
+      showAlert(errorMessage, 'error');
     } finally {
       setModalLoading(false);
     }
@@ -113,27 +107,20 @@ const Users = () => {
     setEditLoading(true);
     setEditError('');
     try {
-      const res = await fetch(`https://danabbackend.onrender.com/api/users/update?id=${editForm.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: editForm.username,
-          password: editForm.password,
-          email: editForm.email,
-          role: editForm.role.toLowerCase(),
-          permissions: editForm.permissions
-        })
+      const response = await apiService.updateUser(editForm.username, {
+        username: editForm.username,
+        password: editForm.password,
+        email: editForm.email,
+        role: editForm.role.toLowerCase(),
+        permissions: editForm.permissions
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to update user ❌');
-      }
       dispatch(fetchUsers());
       showAlert('User updated successfully!', 'success');
       setEditModalOpen(false);
     } catch (err) {
-      setEditError(err.message || 'Something went wrong ❌');
-      showAlert(err.message || 'Something went wrong ❌', 'error');
+      const errorMessage = err.response?.data?.message || err.message || 'Something went wrong ❌';
+      setEditError(errorMessage);
+      showAlert(errorMessage, 'error');
     } finally {
       setEditLoading(false);
     }
@@ -164,17 +151,12 @@ const Users = () => {
     if (!confirmDelete.user) return;
     setDeleteLoading(true);
     try {
-      const res = await fetch(`https://danabbackend.onrender.com/api/users/delete?id=${confirmDelete.user.id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to delete user ❌');
-      }
+      const response = await apiService.deleteUser(confirmDelete.user.id);
       showAlert('User deleted successfully!', 'success');
       dispatch(fetchUsers());
     } catch (err) {
-      showAlert(err.message || 'Something went wrong ❌', 'error');
+      const errorMessage = err.response?.data?.message || err.message || 'Something went wrong ❌';
+      showAlert(errorMessage, 'error');
     } finally {
       setDeleteLoading(false);
       setConfirmDelete({ open: false, user: null });

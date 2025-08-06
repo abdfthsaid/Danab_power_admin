@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiService } from '../api/apiConfig';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -32,13 +33,9 @@ const Revenue = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('https://danabbackend.onrender.com/api/chartsAll/all')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch');
-        return res.json();
-      })
-      .then((data) => {
-        setChartData(data);
+    apiService.getAllCharts()
+      .then((response) => {
+        setChartData(response.data);
         setLoading(false);
       })
       .catch((err) => {

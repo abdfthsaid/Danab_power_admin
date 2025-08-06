@@ -1,54 +1,35 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { apiService } from '../api/apiConfig';
 
 // Async thunk to fetch users from the API
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
-  const response = await fetch('https://danabbackend.onrender.com/api/users/all');
-  if (!response.ok) throw new Error('Failed to fetch users');
-  const data = await response.json();
-  return data;
+  const response = await apiService.getUsers();
+  return response.data;
 });
 
 // Async thunk for user login
 export const loginUser = createAsyncThunk('users/loginUser', async ({ username, password }) => {
-  const response = await fetch('https://danabbackend.onrender.com/api/users/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Login failed');
-  return data.user;
+  const response = await apiService.loginUser({ username, password });
+  return response.data.user;
 });
 
 // Register user thunk
 export const registerUser = createAsyncThunk('users/registerUser', async (userData, { rejectWithValue }) => {
   try {
-    const response = await fetch('https://danabbackend.onrender.com/api/users/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Registration failed');
-    return data;
+    const response = await apiService.addUser(userData);
+    return response.data;
   } catch (err) {
-    return rejectWithValue(err.message);
+    return rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
 // Update user thunk (by username)
 export const updateUser = createAsyncThunk('users/updateUser', async ({ username, updateData }, { rejectWithValue }) => {
   try {
-    const response = await fetch(`https://danabbackend.onrender.com/api/users/update?username=${encodeURIComponent(username)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updateData)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Update failed');
-    return { username, user: data };
+    const response = await apiService.updateUser(username, updateData);
+    return { username, user: response.data };
   } catch (err) {
-    return rejectWithValue(err.message);
+    return rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 

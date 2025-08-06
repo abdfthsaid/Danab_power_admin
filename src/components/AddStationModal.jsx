@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faTimes,
@@ -8,6 +8,7 @@ import {
   faCheckCircle,
   faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons'
+import { apiService } from '../api/apiConfig'
 
 const AddStationModal = ({ isOpen, onClose, onAddStation, initialValues = null, onSubmit = null, mode = 'add' }) => {
   const [formData, setFormData] = useState({
@@ -67,23 +68,16 @@ const AddStationModal = ({ isOpen, onClose, onAddStation, initialValues = null, 
 
     setLoading(true)
     try {
-      const res = await fetch('https://danabbackend.onrender.com/api/stations/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imei: formData.imei,
-          name: formData.name,
-          iccid: formData.iccid,
-          location: formData.location,
-          totalSlots: Number(formData.totalSlots),
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to register station ❌')
+      const stationData = {
+        imei: formData.imei,
+        name: formData.name,
+        iccid: formData.iccid,
+        location: formData.location,
+        totalSlots: Number(formData.totalSlots),
       }
+
+      const response = await apiService.addStation(stationData)
+      const data = response.data
 
       if (onAddStation) onAddStation(formData)
 
@@ -96,7 +90,7 @@ const AddStationModal = ({ isOpen, onClose, onAddStation, initialValues = null, 
         onClose()
       }, 2000)
     } catch (error) {
-      setApiError(error.message || 'Something went wrong ❌')
+      setApiError(error.response?.data?.message || error.message || 'Something went wrong ❌')
     } finally {
       setLoading(false)
     }

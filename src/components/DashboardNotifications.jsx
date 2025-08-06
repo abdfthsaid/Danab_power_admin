@@ -7,6 +7,7 @@ import {
   faClock,
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
+import { apiService } from '../api/apiConfig';
 
 const DashboardNotifications = ({ showAll = false, onViewAll }) => {
   const [notifications, setNotifications] = useState([]);
@@ -22,14 +23,14 @@ const DashboardNotifications = ({ showAll = false, onViewAll }) => {
       setLoading(true);
       setError('');
       
-      // Fetch data from multiple endpoints
+      // Fetch data from multiple endpoints using apiService
       const [transactionsRes, stationsRes] = await Promise.all([
-        fetch('https://danabbackend.onrender.com/api/transactions/latest'),
-        fetch('https://danabbackend.onrender.com/api/stations/basic')
+        apiService.getLatestTransactions(),
+        apiService.getStations()
       ]);
 
-      const transactions = await transactionsRes.json();
-      const stationsData = await stationsRes.json();
+      const transactions = transactionsRes.data;
+      const stationsData = stationsRes.data;
       const stations = stationsData.stations || [];
 
       // Create a map of station codes to station names
@@ -42,7 +43,7 @@ const DashboardNotifications = ({ showAll = false, onViewAll }) => {
       const generatedNotifications = generateNotifications(transactions, stations, stationMap);
       setNotifications(generatedNotifications);
     } catch (err) {
-      setError(err.message || 'Failed to load notifications');
+      setError(err.response?.data?.message || err.message || 'Failed to load notifications');
       console.error('Error fetching notifications:', err);
     } finally {
       setLoading(false);

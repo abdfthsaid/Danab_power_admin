@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp, faUsers, faCalendarDay, faMoneyBillWave, faCalendar } from '@fortawesome/free-solid-svg-icons'
 import { useState, useEffect } from 'react'
+import { apiService } from '../api/apiConfig'
 
 const StatsCards = () => {
   const [monthlyData, setMonthlyData] = useState({ month: '', totalCustomersThisMonth: 0, stations: 0 })
@@ -12,20 +13,20 @@ const StatsCards = () => {
     const fetchData = async () => {
       try {
         // Fetch monthly revenue
-        const revenueResponse = await fetch('https://danabbackend.onrender.com/api/revenue/monthly')
-        const revenueResult = await revenueResponse.json()
+        const revenueResponse = await apiService.getAllMonthlyRevenue()
+        const revenueResult = revenueResponse.data
         setRevenueData(revenueResult)
         // Fetch daily revenue
-        const dailyRevenueResponse = await fetch('https://danabbackend.onrender.com/api/revenue/daily')
-        const dailyRevenueResult = await dailyRevenueResponse.json()
+        const dailyRevenueResponse = await apiService.getAllDailyRevenue()
+        const dailyRevenueResult = dailyRevenueResponse.data
         setDailyRevenueData(dailyRevenueResult)
         // Fetch monthly data
-        const monthlyResponse = await fetch('https://danabbackend.onrender.com/api/customers/monthly-total')
-        const monthlyResult = await monthlyResponse.json()
+        const monthlyResponse = await apiService.getMonthlyTotalCustomers()
+        const monthlyResult = monthlyResponse.data
         setMonthlyData(monthlyResult)
         // Fetch daily data
-        const dailyResponse = await fetch('https://danabbackend.onrender.com/api/customers/daily-total')
-        const dailyResult = await dailyResponse.json()
+        const dailyResponse = await apiService.getDailyTotalCustomers()
+        const dailyResult = dailyResponse.data
         setDailyData(dailyResult)
       } catch (error) {
         console.error('Failed to fetch data:', error)
