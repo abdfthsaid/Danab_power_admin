@@ -13,6 +13,7 @@ import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import StationDetails from './pages/StationDetails';
+import StationComparison from './pages/StationComparison';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext.jsx'
 import { LanguageProvider } from './context/LanguageContext';
@@ -68,6 +69,7 @@ function App() {
                       <Routes>
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="stations" element={<Stations />} />
+                        <Route path="station-comparison" element={<StationComparison />} />
                         <Route path="slots" element={<Slots />} />
                         <Route path="revenue" element={
                           <ProtectedRoute adminOnly={true}>

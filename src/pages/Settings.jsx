@@ -131,7 +131,7 @@ const Settings = () => {
           </span>
         </div>
       </div>
-
+      
       {/* Message Display */}
       {message.text && (
         <div className={`mb-4 p-4 rounded-lg flex items-center space-x-2 ${
@@ -147,8 +147,8 @@ const Settings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Navigation */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
-            <div className="p-4">
+      <div className="bg-white rounded-lg shadow dark:bg-gray-800 transition-colors duration-300">
+        <div className="p-4">
               <nav className="space-y-2">
                 {tabs.map((tab) => (
                   <button

@@ -12,7 +12,8 @@ import {
   faUserCog,
   faMoon,
   faSun,
-  faTimes
+  faTimes,
+  faChartBar
 } from '@fortawesome/free-solid-svg-icons'
 import { useDarkMode } from '../context/DarkModeContext'
 import { useAuth } from '../context/AuthContext'
@@ -51,6 +52,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           section: 'OPERATIONS',
           items: [
             { id: 'stations', label: t('stations'), icon: faStore },
+            { id: 'station-comparison', label: 'Station Comparison', icon: faChartBar },
             { id: 'slots', label: t('slots'), icon: faBatteryThreeQuarters },
             { id: 'revenue', label: t('revenue'), icon: faChartLine },
             // { id: 'rentals', label: t('rentals'), icon: faExchangeAlt }
@@ -73,6 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           section: 'OPERATIONS',
           items: [
             { id: 'stations', label: t('stations'), icon: faStore },
+            { id: 'station-comparison', label: 'Station Comparison', icon: faChartBar },
             { id: 'slots', label: t('slots'), icon: faBatteryThreeQuarters },
             // Regular users don't see revenue analytics
             // { id: 'revenue', label: t('revenue'), icon: faChartLine },
