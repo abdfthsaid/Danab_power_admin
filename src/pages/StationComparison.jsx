@@ -247,7 +247,7 @@ const StationComparison = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="text-lg text-blue-600 dark:text-blue-300 animate-pulse">Loading stations...</div>
       </div>
     );
@@ -263,19 +263,19 @@ const StationComparison = () => {
 
       {/* Station Selection */}
       <div className="max-w-6xl px-4 mx-auto mt-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Stations to Compare</h2>
             <div className="flex gap-2">
               <button
                 onClick={handleSelectAll}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 text-sm font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 Select All
               </button>
               <button
                 onClick={handleDeselectAll}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition"
+                className="px-4 py-2 text-sm font-medium text-gray-700 transition bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
               >
                 Deselect All
               </button>
@@ -283,12 +283,12 @@ const StationComparison = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-4 text-red-700 bg-red-100 border border-red-400 rounded-lg dark:bg-red-900 dark:text-red-200">
+            <div className="p-4 mb-4 text-red-700 bg-red-100 border border-red-400 rounded-lg dark:bg-red-900 dark:text-red-200">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {stations.map((station) => (
               <div
                 key={station.imei}
@@ -311,7 +311,7 @@ const StationComparison = () => {
                       : 'border-gray-300 dark:border-gray-500'
                   }`}>
                     {selectedStations.includes(station.imei) && (
-                      <FontAwesomeIcon icon={faCheck} className="text-white text-xs" />
+                      <FontAwesomeIcon icon={faCheck} className="text-xs text-white" />
                     )}
                   </div>
                 </div>
@@ -325,20 +325,20 @@ const StationComparison = () => {
       {selectedStations.length > 0 && (
         <div className="max-w-6xl px-4 mx-auto mt-8">
           {chartsLoading ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+            <div className="p-8 text-center bg-white rounded-lg shadow-lg dark:bg-gray-800">
               <div className="text-lg text-gray-600 dark:text-gray-400 animate-pulse">Loading comparison data...</div>
             </div>
           ) : (
             <>
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 lg:grid-cols-4">
                 {selectedStations.map((imei) => {
                   const station = stationData[imei];
                   if (!station || station.error) return null;
 
                   return (
-                    <div key={imei} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
-                      <h3 className="font-semibold text-gray-800 dark:text-white mb-3">{station.name}</h3>
+                    <div key={imei} className="p-4 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+                      <h3 className="mb-3 font-semibold text-gray-800 dark:text-white">{station.name}</h3>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Today's Revenue:</span>
@@ -371,11 +371,11 @@ const StationComparison = () => {
               </div>
 
               {/* Combined Charts */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6">Combined Charts</h2>
+              <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+                <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white">Combined Charts</h2>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
+                  <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                     <h3 className="mb-2 text-sm font-medium dark:text-white">Daily Revenue Comparison</h3>
                     {getCombinedChartData('dailyRevenue') ? (
                       <Line 
@@ -391,11 +391,11 @@ const StationComparison = () => {
                         height={100} 
                       />
                     ) : (
-                      <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                      <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                     )}
                   </div>
                   
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                     <h3 className="mb-2 text-sm font-medium dark:text-white">Monthly Revenue Comparison</h3>
                     {getCombinedChartData('monthlyRevenue') ? (
                       <Line 
@@ -411,12 +411,12 @@ const StationComparison = () => {
                         height={100} 
                       />
                     ) : (
-                      <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                      <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                     )}
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                   <h3 className="mb-2 text-sm font-medium dark:text-white">Weekly Revenue Comparison</h3>
                   {getCombinedChartData('weeklyRevenue') ? (
                     <Bar 
@@ -432,7 +432,7 @@ const StationComparison = () => {
                       height={80} 
                     />
                   ) : (
-                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                    <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                   )}
                 </div>
               </div>
@@ -444,11 +444,11 @@ const StationComparison = () => {
                   if (!station || station.error) return null;
 
                   return (
-                    <div key={imei} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                      <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">{station.name}</h2>
+                    <div key={imei} className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+                      <h2 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">{station.name}</h2>
                       
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                           <h3 className="mb-2 text-sm font-medium dark:text-white">Daily Revenue Trend</h3>
                           {getChartData(imei, 'dailyRevenue') ? (
                             <Line 
@@ -457,11 +457,11 @@ const StationComparison = () => {
                               height={100} 
                             />
                           ) : (
-                            <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                            <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                           )}
                         </div>
                         
-                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
                           <h3 className="mb-2 text-sm font-medium dark:text-white">Monthly Revenue Trend</h3>
                           {getChartData(imei, 'monthlyRevenue') ? (
                             <Line 
@@ -470,12 +470,12 @@ const StationComparison = () => {
                               height={100} 
                             />
                           ) : (
-                            <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                            <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                           )}
                         </div>
                       </div>
                       
-                      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="p-4 mt-6 rounded-lg bg-gray-50 dark:bg-gray-700">
                         <h3 className="mb-2 text-sm font-medium dark:text-white">Weekly Revenue Breakdown</h3>
                         {getChartData(imei, 'weeklyRevenue') ? (
                           <Bar 
@@ -484,7 +484,7 @@ const StationComparison = () => {
                             height={80} 
                           />
                         ) : (
-                          <div className="text-center text-gray-500 dark:text-gray-400 py-8">No data available</div>
+                          <div className="py-8 text-center text-gray-500 dark:text-gray-400">No data available</div>
                         )}
                       </div>
                     </div>
@@ -499,9 +499,9 @@ const StationComparison = () => {
       {/* Empty State */}
       {selectedStations.length === 0 && !loading && (
         <div className="max-w-6xl px-4 mx-auto mt-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-            <FontAwesomeIcon icon={faBatteryThreeQuarters} className="text-4xl text-gray-400 dark:text-gray-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-2">No Stations Selected</h3>
+          <div className="p-8 text-center bg-white rounded-lg shadow-lg dark:bg-gray-800">
+            <FontAwesomeIcon icon={faBatteryThreeQuarters} className="mb-4 text-4xl text-gray-400 dark:text-gray-500" />
+            <h3 className="mb-2 text-lg font-medium text-gray-800 dark:text-white">No Stations Selected</h3>
             <p className="text-gray-600 dark:text-gray-400">Select one or more stations above to start comparing their data.</p>
           </div>
         </div>

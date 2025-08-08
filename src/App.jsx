@@ -72,7 +72,7 @@ function App() {
                         <Route path="station-comparison" element={<StationComparison />} />
                         <Route path="slots" element={<Slots />} />
                         <Route path="revenue" element={
-                          <ProtectedRoute adminOnly={true}>
+                          <ProtectedRoute >
                             <Revenue />
                           </ProtectedRoute>
                         } />

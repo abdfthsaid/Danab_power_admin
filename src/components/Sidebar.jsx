@@ -78,7 +78,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             { id: 'station-comparison', label: 'Station Comparison', icon: faChartBar },
             { id: 'slots', label: t('slots'), icon: faBatteryThreeQuarters },
             // Regular users don't see revenue analytics
-            // { id: 'revenue', label: t('revenue'), icon: faChartLine },
+            { id: 'revenue', label: t('revenue'), icon: faChartLine },
+            
           ]
         }
         // Regular users don't see management section
@@ -154,7 +155,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         
         {/* Settings section - available for all users */}
         <div className="pt-4 mt-8 border-t dark:border-gray-700">
-          <button
+          {/* <button
             onClick={() => {
               navigate('/settings');
               setSidebarOpen(false);
@@ -167,7 +168,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           >
             <FontAwesomeIcon icon={faUserCog} className="mr-3" />
             <span>{t('settings')}</span>
-          </button>
+          </button> */}
         </div>
       </nav>
     </div>
