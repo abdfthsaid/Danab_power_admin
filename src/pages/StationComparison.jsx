@@ -37,12 +37,14 @@ const StationComparison = () => {
   const [chartsLoading, setChartsLoading] = useState(false);
 
   // Fetch all stations
-  useEffect(() => {
+   useEffect(() => {
     const fetchStations = async () => {
       try {
         setLoading(true);
         const response = await apiService.getStations();
-        setStations(response.data.stations || []);
+        const fetchedStations = response.data.stations || [];
+        setStations(fetchedStations);
+        setSelectedStations(fetchedStations.map((s) => s.imei)); 
       } catch (err) {
         setError('Failed to fetch stations');
       } finally {
