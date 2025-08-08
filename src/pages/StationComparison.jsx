@@ -267,7 +267,7 @@ const StationComparison = () => {
       <div className="max-w-6xl px-4 mx-auto mt-8">
         <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Stations to Compare</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Stations</h2>
             <div className="flex gap-2">
               <button
                 onClick={handleSelectAll}
