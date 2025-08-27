@@ -165,8 +165,8 @@ const StationDetails = () => {
           {[
             { icon: faMoneyBillWave, title: "Today's Revenue", value: `$${daily?.totalRevenueToday?.toFixed(2) ?? '-'}`, subtitle: `${daily?.totalRentalsToday ?? '-'} rentals`, color: 'from-indigo-500 to-indigo-600' },
             { icon: faChartBar, title: "Monthly Revenue", value: `$${monthly?.totalRevenueMonthly?.toFixed(2) ?? '-'}`, subtitle: `${monthly?.totalRentalsThisMonth ?? '-'} rentals`, color: 'from-blue-500 to-blue-600' },
-            { icon: faUsers, title: "Today's Customers", value: dailyCustomers?.count ?? '-', subtitle: `Date: ${dailyCustomers?.date || '-'}`, color: 'from-green-500 to-green-600' },
-            { icon: faUsers, title: "Monthly Customers", value: monthlyCustomers?.count ?? '-', subtitle: `Month: ${monthlyCustomers?.date || '-'}`, color: 'from-yellow-500 to-yellow-600' },
+            { icon: faUsers, title: "Today's Customers", value: dailyCustomers?.totalCustomersToday ?? '-', subtitle: `Date: ${dailyCustomers?.date || '-'}`, color: 'from-green-500 to-green-600' },
+            { icon: faUsers, title: "Monthly Customers", value: monthlyCustomers?.totalCustomersThisMonth ?? '-', subtitle: `Month: ${monthlyCustomers?.month || '-'}`, color: 'from-yellow-500 to-yellow-600' },
           ].map((card, i) => (
             <div key={i} className={`flex flex-col items-center p-3 rounded-lg bg-gradient-to-br ${card.color} text-white shadow`}>
               <FontAwesomeIcon icon={card.icon} className="mb-1 text-xl" />
