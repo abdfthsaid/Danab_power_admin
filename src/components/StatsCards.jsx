@@ -48,8 +48,8 @@ const StatsCards = () => {
     {
       title: `Total Customers (${monthlyData.month || 'Month'})`,
       value: monthlyData.totalCustomersThisMonth.toString(),
-      change: `${monthlyData.stations} stations`,
-      progress: 70,
+      change: `${revenueData.totalRevenueMonthly}  revenue`,
+      progress: 78,
       color: 'green',
       icon: <FontAwesomeIcon icon={faUsers} className="text-green-500" />
     },
