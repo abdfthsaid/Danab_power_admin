@@ -37,6 +37,20 @@ const StationComparison = () => {
   const [chartsLoading, setChartsLoading] = useState(false);
 
   // Fetch all stations
+  // useEffect(() => {
+  //   const fetchStations = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await apiService.getStations();
+  //       setStations(response.data.stations || []);
+  //     } catch (err) {
+  //       setError('Failed to fetch stations');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchStations();
+  // }, []);
    useEffect(() => {
     const fetchStations = async () => {
       try {
@@ -267,7 +281,7 @@ const StationComparison = () => {
       <div className="max-w-6xl px-4 mx-auto mt-8">
         <div className="p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Stations</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Select Stations to Compare</h2>
             <div className="flex gap-2">
               <button
                 onClick={handleSelectAll}
@@ -357,13 +371,13 @@ const StationComparison = () => {
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Today's Customers:</span>
                           <span className="font-medium text-purple-600 dark:text-purple-400">
-                            {station.dailyCustomers?.count ?? '-'}
+                            {station.dailyCustomers?.totalCustomersToday ?? '-'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 dark:text-gray-400">Monthly Customers:</span>
                           <span className="font-medium text-orange-600 dark:text-orange-400">
-                            {station.monthlyCustomers?.count ?? '-'}
+                            {station.monthlyCustomers?.totalCustomersThisMonth ?? '-'}
                           </span>
                         </div>
                       </div>
