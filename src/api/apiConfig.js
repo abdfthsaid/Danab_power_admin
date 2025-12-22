@@ -30,7 +30,7 @@ export const API_ENDPOINTS = {
   // Customers
   CUSTOMERS: {
     DAILY_BY_IMEI: "/api/customers/daily-by-imei",
-    MONTHLY: "/api/customers/monthly",
+    MONTHLY_BY_IMEI: "/api/customers/monthly-by-imei",
     DAILY_TOTAL: "/api/customers/daily-total",
     MONTHLY_TOTAL: "/api/customers/monthly-total",
   },
@@ -141,7 +141,7 @@ export const apiService = {
   getDailyCustomers: (imei) =>
     apiClient.get(`${API_ENDPOINTS.CUSTOMERS.DAILY_BY_IMEI}/${imei}`),
   getMonthlyCustomers: (imei) =>
-    apiClient.get(`${API_ENDPOINTS.CUSTOMERS.MONTHLY}/${imei}`),
+    apiClient.get(`${API_ENDPOINTS.CUSTOMERS.MONTHLY_BY_IMEI}/${imei}`),
   getDailyTotalCustomers: () =>
     apiClient.get(API_ENDPOINTS.CUSTOMERS.DAILY_TOTAL),
   getMonthlyTotalCustomers: () =>
