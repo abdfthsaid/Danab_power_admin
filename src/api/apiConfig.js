@@ -94,10 +94,19 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and token expiry
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (error.response?.status === 401) {
+      // Clear all auth data
+      localStorage.removeItem("sessionUser");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("tokenExpiresAt");
+      // Redirect to login page
+      window.location.href = "/login";
+    }
     console.error("API Error:", error);
     return Promise.reject(error);
   }

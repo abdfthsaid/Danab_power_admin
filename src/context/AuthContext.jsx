@@ -1,61 +1,86 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 
 const AuthContext = createContext();
-
-const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes in ms
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const timeoutRef = useRef(null);
 
-  // Helper to clear and set the session timeout
-  const resetSessionTimeout = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (user) {
-      timeoutRef.current = setTimeout(() => {
-        logout();
-      }, SESSION_TIMEOUT);
-    }
+  // Check if token is expired
+  const isTokenExpired = () => {
+    const expiresAt = localStorage.getItem("tokenExpiresAt");
+    if (!expiresAt) return true;
+    return Date.now() >= parseInt(expiresAt, 10);
   };
 
-  // Listen for user activity to reset the timer
+  // Setup auto-logout timer based on token expiry
+  const setupAutoLogout = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    const expiresAt = localStorage.getItem("tokenExpiresAt");
+    if (!expiresAt) return;
+
+    const timeUntilExpiry = parseInt(expiresAt, 10) - Date.now();
+    if (timeUntilExpiry <= 0) {
+      logout();
+      return;
+    }
+
+    // Set timeout to logout when token expires
+    timeoutRef.current = setTimeout(() => {
+      logout();
+      window.location.href = "/login";
+    }, timeUntilExpiry);
+  };
+
   useEffect(() => {
-    if (!user) return;
-    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
-    events.forEach(event => window.addEventListener(event, resetSessionTimeout));
-    resetSessionTimeout();
+    // Load user from localStorage if exists and token is valid
+    const saved = localStorage.getItem("sessionUser");
+    const token = localStorage.getItem("authToken");
+
+    if (saved && token && !isTokenExpired()) {
+      setUser(JSON.parse(saved));
+      setupAutoLogout();
+    } else if (saved || token) {
+      // Clear expired session
+      logout();
+    }
+    setAuthLoading(false);
+
     return () => {
-      events.forEach(event => window.removeEventListener(event, resetSessionTimeout));
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
     // eslint-disable-next-line
-  }, [user]);
-
-  useEffect(() => {
-    // Load user from localStorage if exists
-    const saved = localStorage.getItem('sessionUser');
-    if (saved) setUser(JSON.parse(saved));
-    setAuthLoading(false);
   }, []);
 
-  const login = (userData) => {
+  const login = (userData, token, expiresAt) => {
     setUser(userData);
-    localStorage.setItem('sessionUser', JSON.stringify(userData));
-    resetSessionTimeout();
+    localStorage.setItem("sessionUser", JSON.stringify(userData));
+    if (token) {
+      localStorage.setItem("authToken", token);
+    }
+    if (expiresAt) {
+      localStorage.setItem("tokenExpiresAt", expiresAt.toString());
+    }
+    setupAutoLogout();
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('sessionUser');
+    localStorage.removeItem("sessionUser");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("tokenExpiresAt");
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, authLoading }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, authLoading, isTokenExpired }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => useContext(AuthContext);
