@@ -10,13 +10,31 @@ export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
 // Async thunk for user login
 export const loginUser = createAsyncThunk(
   "users/loginUser",
-  async ({ username, password }) => {
-    const response = await apiService.loginUser({ username, password });
-    return {
-      user: response.data.user,
-      token: response.data.token,
-      expiresAt: response.data.expiresAt,
-    };
+  async ({ username, password }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.loginUser({ username, password });
+      return {
+        user: response.data.user,
+        token: response.data.token,
+        expiresAt: response.data.expiresAt,
+      };
+    } catch (err) {
+      // Return user-friendly error message
+      const status = err.response?.status;
+      const message = err.response?.data?.message || err.response?.data?.error;
+
+      if (status === 401 || status === 400) {
+        return rejectWithValue(
+          message || "Username ama password way khaldan yihiin"
+        );
+      }
+      if (status === 404) {
+        return rejectWithValue("User-kan lama helin");
+      }
+      return rejectWithValue(
+        message || "Wax qalad ah ayaa dhacay, fadlan mar kale isku day"
+      );
+    }
   }
 );
 
@@ -131,7 +149,7 @@ const usersSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loginLoading = false;
-        state.loginError = action.error.message;
+        state.loginError = action.payload || action.error.message;
         state.loginSuccess = false;
       })
       .addCase(registerUser.pending, (state) => {
