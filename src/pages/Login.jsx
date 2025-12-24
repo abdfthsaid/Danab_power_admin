@@ -28,9 +28,11 @@ const Login = () => {
   const { login: setAuthUser } = useAuth();
   const [form, setForm] = useState({ username: "", password: "" });
 
-  // Reset login state on mount
+  // Only reset on first mount (not on re-renders)
   useEffect(() => {
-    dispatch(resetLoginState());
+    return () => {
+      dispatch(resetLoginState()); // Clean up when leaving page
+    };
   }, [dispatch]);
 
   useEffect(() => {
@@ -53,6 +55,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(resetLoginState()); // Clear previous error before new attempt
     dispatch(loginUser(form));
   };
 
