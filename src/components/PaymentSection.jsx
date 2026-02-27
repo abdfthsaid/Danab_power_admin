@@ -29,7 +29,7 @@ const PaymentSection = ({ selectedAmount, selectedMethod, selectMethod }) => {
 
     try {
       const res = await axios.post(
-        "https://phase2backeend-ptsd.onrender.com/api/pay/58",
+        "https://phase2backeend-1.onrender.com/api/pay/58",
         {
           phoneNumber: number,
           amount: amount,
