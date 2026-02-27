@@ -23,19 +23,31 @@ export const loginUser = createAsyncThunk(
       const status = err.response?.status;
       const message = err.response?.data?.message || err.response?.data?.error;
 
+      // Network/timeout errors (no response from server)
+      if (!err.response) {
+        if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+          return rejectWithValue(
+            "Server-ku wuu hurda, fadlan sug 30 ilbiriqsi oo mar kale isku day",
+          );
+        }
+        return rejectWithValue(
+          "Server-ka lama xiriiri karo, fadlan internet-kaaga hubi",
+        );
+      }
+
       if (status === 401 || status === 400) {
         return rejectWithValue(
-          message || "Username ama password way khaldan yihiin"
+          message || "Username ama password way khaldan yihiin",
         );
       }
       if (status === 404) {
         return rejectWithValue("User-kan lama helin");
       }
       return rejectWithValue(
-        message || "Wax qalad ah ayaa dhacay, fadlan mar kale isku day"
+        message || "Wax qalad ah ayaa dhacay, fadlan mar kale isku day",
       );
     }
-  }
+  },
 );
 
 // Register user thunk
@@ -48,7 +60,7 @@ export const registerUser = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
 // Update user thunk (by username)
@@ -61,7 +73,7 @@ export const updateUser = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
 const initialState = {
@@ -135,7 +147,7 @@ const usersSlice = createSlice({
         state.loginSuccess = true;
         localStorage.setItem(
           "sessionUser",
-          JSON.stringify(action.payload.user)
+          JSON.stringify(action.payload.user),
         );
         if (action.payload.token) {
           localStorage.setItem("authToken", action.payload.token);
@@ -143,7 +155,7 @@ const usersSlice = createSlice({
         if (action.payload.expiresAt) {
           localStorage.setItem(
             "tokenExpiresAt",
-            action.payload.expiresAt.toString()
+            action.payload.expiresAt.toString(),
           );
         }
       })
@@ -175,7 +187,7 @@ const usersSlice = createSlice({
         state.updateLoading = false;
         // Update the user in the users list
         const idx = state.users.findIndex(
-          (u) => u.username === action.payload.username
+          (u) => u.username === action.payload.username,
         );
         if (idx !== -1) {
           state.users[idx] = { ...state.users[idx], ...action.payload.user };

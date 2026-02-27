@@ -46,6 +46,11 @@ export const API_ENDPOINTS = {
     LATEST: "/api/transactions/latest",
   },
 
+  // Payment
+  PAYMENT: {
+    PROCESS: (stationCode) => `/api/pay/${stationCode}`,
+  },
+
   // Blacklist
   BLACKLIST: {
     ALL: "/api/blacklist",
@@ -73,7 +78,7 @@ import axios from "axios";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000, // 60 seconds - Render free tier can take 30-60s to spin up
   headers: {
     "Content-Type": "application/json",
   },
@@ -91,7 +96,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for error handling and token expiry
@@ -109,7 +114,7 @@ apiClient.interceptors.response.use(
     }
     console.error("API Error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // API service functions
@@ -122,7 +127,7 @@ export const apiService = {
   updateUser: (username, userData) =>
     apiClient.put(
       `${API_ENDPOINTS.USERS.UPDATE}?username=${encodeURIComponent(username)}`,
-      userData
+      userData,
     ),
   deleteUser: (id) =>
     apiClient.delete(`${API_ENDPOINTS.USERS.DELETE}?id=${id}`),
@@ -171,6 +176,10 @@ export const apiService = {
     apiClient.get(`${API_ENDPOINTS.BLACKLIST.CHECK}/${phoneNumber}`),
   removeFromBlacklist: (id) =>
     apiClient.delete(`${API_ENDPOINTS.BLACKLIST.DELETE}/${id}`),
+
+  // Payment
+  processPayment: (stationCode, data) =>
+    apiClient.post(API_ENDPOINTS.PAYMENT.PROCESS(stationCode), data),
 };
 
 export default apiService;
