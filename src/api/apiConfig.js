@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = "https://phase2backeend-1.onrender.com";
+const API_BASE_URL = "https://adminsbackend.onrender.com";
 
 // API endpoints
 export const API_ENDPOINTS = {
