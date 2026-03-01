@@ -28,6 +28,22 @@ const PaymentSection = ({ selectedAmount, selectedMethod, selectMethod }) => {
     let isSuccess = false;
 
     try {
+      // 🚫 Check if user is blacklisted first
+      const blacklistCheck = await axios.get(
+        `https://phase2backeend-1.onrender.com/api/blacklist/check/${number}`,
+        { validateStatus: () => true },
+      );
+
+      if (blacklistCheck.data?.isBlacklisted) {
+        setProcessingStatus("failed");
+        setReason("BLACKLISTED");
+        setErrorMessage(
+          "Waa lagaa mamnuucay kireysiga. Fadlan la xiriir taageerada.",
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       const res = await axios.post(
         "https://phase2backeend-1.onrender.com/api/pay/58",
         {
