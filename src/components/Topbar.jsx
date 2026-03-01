@@ -198,40 +198,34 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     return titles[currentPage] || t("dashboard");
   };
 
-  const fetchNotifications = async () => {
-    try {
+  // Get data from DataContext instead of fetching independently
+  const {
+    transactions: contextTransactions,
+    stations: contextStations,
+    loading: contextLoading,
+  } = useData();
+
+  // Generate notifications from context data
+  useEffect(() => {
+    if (!contextLoading && contextTransactions.length > 0) {
       setLoading(true);
-
-      // Fetch data from multiple endpoints using apiService
-      const [transactionsRes, stationsRes] = await Promise.all([
-        apiService.getLatestTransactions(),
-        apiService.getStations(),
-      ]);
-
-      const transactions = transactionsRes.data;
-      const stationsData = stationsRes.data;
-      const stations = stationsData.stations || [];
 
       // Create a map of station codes to station names
       const stationMap = {};
-      stations.forEach((station) => {
+      contextStations.forEach((station) => {
         stationMap[station.imei] = station.name;
       });
 
       // Generate notifications based on the data
       const generatedNotifications = generateNotifications(
-        transactions,
-        stations,
+        contextTransactions,
+        contextStations,
         stationMap,
       );
       setNotifications(generatedNotifications.slice(0, 5)); // Show only top 5 in dropdown
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-      setNotifications([]);
-    } finally {
       setLoading(false);
     }
-  };
+  }, [contextTransactions, contextStations, contextLoading]);
 
   const generateNotifications = (transactions, stations, stationMap) => {
     const notifications = [];
@@ -343,18 +337,8 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     );
   };
 
-  // Fetch notifications when dropdown opens
-  useEffect(() => {
-    if (notificationOpen) {
-      fetchNotifications();
-    }
-  }, [notificationOpen]);
-
-  // Fetch notifications on mount for initial badge count
-  useEffect(() => {
-    fetchNotifications();
-    // eslint-disable-next-line
-  }, []);
+  // Notifications are now automatically generated from DataContext
+  // No need for separate fetch calls
 
   const errorCount = notifications.filter((n) => n.type === "error").length;
   // Count of new notifications
