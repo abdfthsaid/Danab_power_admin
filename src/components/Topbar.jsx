@@ -42,6 +42,14 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
   // Check if user is admin using utility function
   const userIsAdmin = isAdmin(user);
 
+  // Get data from DataContext
+  const {
+    transactions: contextTransactions,
+    stations: contextStations,
+    users: contextUsers,
+    loading: contextLoading,
+  } = useData();
+
   // Refs for dropdowns
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -197,13 +205,6 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     };
     return titles[currentPage] || t("dashboard");
   };
-
-  // Get data from DataContext instead of fetching independently
-  const {
-    transactions: contextTransactions,
-    stations: contextStations,
-    loading: contextLoading,
-  } = useData();
 
   // Generate notifications from context data
   useEffect(() => {
