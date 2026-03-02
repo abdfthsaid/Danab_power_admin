@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -77,16 +77,22 @@ const Topbar = ({ currentPage, setSidebarOpen }) => {
     };
   }, []);
 
+  // Use useMemo to prevent infinite loop from object recreation
+  const memoizedAllData = useMemo(
+    () => ({
+      stations: contextStations || [],
+      users: contextUsers || [],
+      transactions: contextTransactions || [],
+    }),
+    [contextStations, contextUsers, contextTransactions],
+  );
+
   useEffect(() => {
     if (!contextLoading) {
-      setAllData({
-        stations: contextStations || [],
-        users: contextUsers || [],
-        transactions: contextTransactions || [],
-      });
+      setAllData(memoizedAllData);
       setSearchLoading(false);
     }
-  }, [contextStations, contextUsers, contextTransactions, contextLoading]);
+  }, [contextLoading, memoizedAllData]);
 
   // Search functionality
   const performSearch = (query) => {
