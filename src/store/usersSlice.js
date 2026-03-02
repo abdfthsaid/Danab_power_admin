@@ -19,9 +19,22 @@ export const loginUser = createAsyncThunk(
         expiresAt: response.data.expiresAt,
       };
     } catch (err) {
+      console.error("Login error:", err);
+
       // Return user-friendly error message
       const status = err.response?.status;
       const message = err.response?.data?.message || err.response?.data?.error;
+
+      // Check for authentication errors first (401/400)
+      if (status === 401 || status === 400) {
+        return rejectWithValue(
+          message || "Username ama password way khaldan yihiin",
+        );
+      }
+
+      if (status === 404) {
+        return rejectWithValue("User-kan lama helin");
+      }
 
       // Network/timeout errors (no response from server)
       if (!err.response) {
@@ -35,14 +48,7 @@ export const loginUser = createAsyncThunk(
         );
       }
 
-      if (status === 401 || status === 400) {
-        return rejectWithValue(
-          message || "Username ama password way khaldan yihiin",
-        );
-      }
-      if (status === 404) {
-        return rejectWithValue("User-kan lama helin");
-      }
+      // Other server errors (500, etc)
       return rejectWithValue(
         message || "Wax qalad ah ayaa dhacay, fadlan mar kale isku day",
       );
