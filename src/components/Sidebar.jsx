@@ -1,15 +1,10 @@
-import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTachometerAlt,
   faStore,
   faBatteryThreeQuarters,
   faChartLine,
-  faExchangeAlt,
   faUsers,
-  faBatteryFull,
-  faBell,
-  faUserCog,
   faMoon,
   faSun,
   faTimes,
@@ -20,7 +15,7 @@ import { useDarkMode } from "../context/DarkModeContext";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import { isAdmin, getUserDisplayRole } from "../utils/roleUtils";
+import { ROLES, getUserRole } from "../utils/permissions";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const { dark, setDark } = useDarkMode();
@@ -31,24 +26,30 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const toggleDarkMode = () => setDark((d) => !d);
 
-  // Check if user is admin using utility function
-  const userIsAdmin = isAdmin(user);
+  // Get current user role
+  const userRole = getUserRole();
 
   // Define navigation items based on user role
   const getNavigationItems = () => {
-    const baseItems = [
-      {
-        section: "OVERVIEW",
-        items: [
-          { id: "dashboard", label: t("dashboard"), icon: faTachometerAlt },
-        ],
-      },
-    ];
-
-    if (userIsAdmin) {
-      // Admin sees all sections
+    // USER role: Only Slots section (read-only)
+    if (userRole === ROLES.USER) {
       return [
-        ...baseItems,
+        {
+          section: "OPERATIONS",
+          items: [
+            { id: "slots", label: t("slots"), icon: faBatteryThreeQuarters },
+          ],
+        },
+      ];
+    }
+
+    // MODERATOR role: Dashboard + all operations + blacklist (no users management)
+    if (userRole === ROLES.MODERATOR) {
+      return [
+        {
+          section: "OVERVIEW",
+          items: [{ id: "home", label: t("dashboard"), icon: faTachometerAlt }],
+        },
         {
           section: "OPERATIONS",
           items: [
@@ -60,7 +61,33 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             },
             { id: "slots", label: t("slots"), icon: faBatteryThreeQuarters },
             { id: "revenue", label: t("revenue"), icon: faChartLine },
-            // { id: 'rentals', label: t('rentals'), icon: faExchangeAlt }
+          ],
+        },
+        {
+          section: "MANAGEMENT",
+          items: [{ id: "blacklist", label: "Blacklist", icon: faBan }],
+        },
+      ];
+    }
+
+    // ADMIN role: Full access to everything
+    if (userRole === ROLES.ADMIN) {
+      return [
+        {
+          section: "OVERVIEW",
+          items: [{ id: "home", label: t("dashboard"), icon: faTachometerAlt }],
+        },
+        {
+          section: "OPERATIONS",
+          items: [
+            { id: "stations", label: t("stations"), icon: faStore },
+            {
+              id: "station-comparison",
+              label: "Station Comparison",
+              icon: faChartBar,
+            },
+            { id: "slots", label: t("slots"), icon: faBatteryThreeQuarters },
+            { id: "revenue", label: t("revenue"), icon: faChartLine },
           ],
         },
         {
@@ -68,32 +95,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           items: [
             { id: "users", label: t("users"), icon: faUsers },
             { id: "blacklist", label: "Blacklist", icon: faBan },
-            // { id: 'powerbanks', label: t('powerbanks'), icon: faBatteryFull },
-            // { id: 'notifications', label: t('notifications'), icon: faBell }
           ],
         },
-      ];
-    } else {
-      // Regular users see limited sections
-      return [
-        ...baseItems,
-        {
-          section: "OPERATIONS",
-          items: [
-            { id: "stations", label: t("stations"), icon: faStore },
-            {
-              id: "station-comparison",
-              label: "Station Comparison",
-              icon: faChartBar,
-            },
-            { id: "slots", label: t("slots"), icon: faBatteryThreeQuarters },
-            // Regular users don't see revenue analytics
-            { id: "revenue", label: t("revenue"), icon: faChartLine },
-          ],
-        },
-        // Regular users don't see management section
       ];
     }
+
+    // Fallback: empty navigation
+    return [];
   };
 
   const navigationItems = getNavigationItems();
@@ -137,12 +145,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </span>
           <span
             className={`px-2 py-1 text-xs font-medium rounded-full ${
-              userIsAdmin
+              userRole === ROLES.ADMIN
                 ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                : userRole === ROLES.MODERATOR
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                  : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
             }`}
           >
-            {getUserDisplayRole(user)}
+            {userRole
+              ? userRole.charAt(0).toUpperCase() + userRole.slice(1)
+              : "User"}
           </span>
         </div>
       </div>

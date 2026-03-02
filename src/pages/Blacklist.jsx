@@ -10,6 +10,7 @@ import {
   faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import apiService from "../api/apiConfig";
+import { permissions } from "../utils/permissions";
 
 const Blacklist = () => {
   const [blacklist, setBlacklist] = useState([]);
@@ -81,7 +82,7 @@ const Blacklist = () => {
     (entry) =>
       entry.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.reason?.toLowerCase().includes(searchTerm.toLowerCase())
+      entry.reason?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const formatDate = (timestamp) => {
@@ -242,18 +243,24 @@ const Blacklist = () => {
                         {formatDate(entry.createdAt)}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button
-                          onClick={() =>
-                            handleRemoveFromBlacklist(
-                              entry.id,
-                              entry.phoneNumber
-                            )
-                          }
-                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2"
-                          title="Remove from blacklist"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
+                        {permissions.canRemoveFromBlacklist() ? (
+                          <button
+                            onClick={() =>
+                              handleRemoveFromBlacklist(
+                                entry.id,
+                                entry.phoneNumber,
+                              )
+                            }
+                            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2"
+                            title="Remove from blacklist"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                            Admin only
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))
