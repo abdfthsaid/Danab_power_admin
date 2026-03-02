@@ -31,7 +31,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   // Define navigation items based on user role
   const getNavigationItems = () => {
-    // USER role: Only Slots section (read-only)
+    // USER role: Slots + Blacklist
     if (userRole === ROLES.USER) {
       return [
         {
@@ -39,6 +39,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           items: [
             { id: "slots", label: t("slots"), icon: faBatteryThreeQuarters },
           ],
+        },
+        {
+          section: "MANAGEMENT",
+          items: [{ id: "blacklist", label: "Blacklist", icon: faBan }],
         },
       ];
     }

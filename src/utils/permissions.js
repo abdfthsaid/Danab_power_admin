@@ -1,21 +1,21 @@
 // Role-based permission system
 
 export const ROLES = {
-  USER: 'user',
-  MODERATOR: 'moderator',
-  ADMIN: 'admin'
+  USER: "user",
+  MODERATOR: "moderator",
+  ADMIN: "admin",
 };
 
 // Get user role from session
 export const getUserRole = () => {
-  const sessionUser = localStorage.getItem('sessionUser');
+  const sessionUser = localStorage.getItem("sessionUser");
   if (!sessionUser) return null;
-  
+
   try {
     const user = JSON.parse(sessionUser);
     return user.role || null;
   } catch (error) {
-    console.error('Error parsing session user:', error);
+    console.error("Error parsing session user:", error);
     return null;
   }
 };
@@ -32,9 +32,9 @@ export const hasMinRole = (minRole) => {
   const roleHierarchy = {
     [ROLES.USER]: 1,
     [ROLES.MODERATOR]: 2,
-    [ROLES.ADMIN]: 3
+    [ROLES.ADMIN]: 3,
   };
-  
+
   return roleHierarchy[userRole] >= roleHierarchy[minRole];
 };
 
@@ -42,36 +42,36 @@ export const hasMinRole = (minRole) => {
 export const permissions = {
   // Dashboard access
   canViewDashboard: () => hasMinRole(ROLES.MODERATOR),
-  
+
   // Slots management
   canViewSlots: () => hasMinRole(ROLES.USER), // All users can view slots
   canManageSlots: () => hasRole(ROLES.ADMIN), // Only admin can manage
-  
+
   // Stations
   canViewStations: () => hasMinRole(ROLES.MODERATOR),
   canAddStation: () => hasRole(ROLES.ADMIN),
   canUpdateStation: () => hasRole(ROLES.ADMIN),
   canDeleteStation: () => hasRole(ROLES.ADMIN),
-  
-  // Users
+
+  // Users - Admin only (hidden from moderators)
   canViewUsers: () => hasRole(ROLES.ADMIN),
   canAddUser: () => hasRole(ROLES.ADMIN),
   canUpdateUser: () => hasRole(ROLES.ADMIN),
   canDeleteUser: () => hasRole(ROLES.ADMIN),
-  
-  // Blacklist
-  canViewBlacklist: () => hasMinRole(ROLES.MODERATOR),
-  canAddToBlacklist: () => hasMinRole(ROLES.MODERATOR),
-  canRemoveFromBlacklist: () => hasRole(ROLES.ADMIN),
-  
+
+  // Blacklist - All authenticated users can manage
+  canViewBlacklist: () => hasMinRole(ROLES.USER),
+  canAddToBlacklist: () => hasMinRole(ROLES.USER),
+  canRemoveFromBlacklist: () => hasMinRole(ROLES.USER), // All users can delete
+
   // Revenue & Analytics
   canViewRevenue: () => hasMinRole(ROLES.MODERATOR),
   canViewCharts: () => hasMinRole(ROLES.MODERATOR),
   canViewTransactions: () => hasMinRole(ROLES.MODERATOR),
-  
+
   // Notifications
   canViewNotifications: () => hasMinRole(ROLES.MODERATOR),
-  
+
   // Settings
   canViewSettings: () => hasMinRole(ROLES.USER),
   canChangePassword: () => hasMinRole(ROLES.USER),
@@ -80,46 +80,46 @@ export const permissions = {
 // Get allowed routes based on user role
 export const getAllowedRoutes = () => {
   const userRole = getUserRole();
-  
+
   const routes = {
-    [ROLES.USER]: ['/slots', '/settings'],
+    [ROLES.USER]: ["/slots", "/settings"],
     [ROLES.MODERATOR]: [
-      '/home',
-      '/stations',
-      '/revenue',
-      '/blacklist',
-      '/notifications',
-      '/settings',
-      '/slots'
+      "/home",
+      "/stations",
+      "/revenue",
+      "/blacklist",
+      "/notifications",
+      "/settings",
+      "/slots",
     ],
     [ROLES.ADMIN]: [
-      '/home',
-      '/stations',
-      '/station/:imei',
-      '/comparison',
-      '/revenue',
-      '/users',
-      '/blacklist',
-      '/notifications',
-      '/settings',
-      '/slots'
-    ]
+      "/home",
+      "/stations",
+      "/station/:imei",
+      "/comparison",
+      "/revenue",
+      "/users",
+      "/blacklist",
+      "/notifications",
+      "/settings",
+      "/slots",
+    ],
   };
-  
+
   return routes[userRole] || [];
 };
 
 // Check if user can access a route
 export const canAccessRoute = (path) => {
   const allowedRoutes = getAllowedRoutes();
-  
+
   // Check exact match
   if (allowedRoutes.includes(path)) return true;
-  
+
   // Check pattern match (e.g., /station/:imei)
-  return allowedRoutes.some(route => {
-    if (route.includes(':')) {
-      const pattern = route.replace(/:[^/]+/g, '[^/]+');
+  return allowedRoutes.some((route) => {
+    if (route.includes(":")) {
+      const pattern = route.replace(/:[^/]+/g, "[^/]+");
       const regex = new RegExp(`^${pattern}$`);
       return regex.test(path);
     }
