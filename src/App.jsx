@@ -24,6 +24,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext.jsx";
 import { LanguageProvider } from "./context/LanguageContext";
 import { DataProvider } from "./context/DataContext";
+import { ROLES } from "./utils/permissions";
 
 import "./App.css";
 
@@ -77,7 +78,14 @@ function App() {
                       />
                       <main className="flex-1">
                         <Routes>
-                          <Route path="dashboard" element={<Dashboard />} />
+                          <Route
+                            path="dashboard"
+                            element={
+                              <ProtectedRoute minRole={ROLES.MODERATOR}>
+                                <Dashboard />
+                              </ProtectedRoute>
+                            }
+                          />
                           <Route path="stations" element={<Stations />} />
                           <Route
                             path="station-comparison"
