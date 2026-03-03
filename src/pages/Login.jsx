@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBolt, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -18,7 +18,6 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
   const loading = useSelector(selectLoginLoading);
   const error = useSelector(selectLoginError);
   const loginSuccess = useSelector(selectLoginSuccess);
@@ -39,7 +38,17 @@ const Login = () => {
   useEffect(() => {
     if (loginSuccess && currentUser) {
       setAuthUser(currentUser, authToken, tokenExpiresAt);
-      navigate("/dashboard", { replace: true });
+
+      // Role-based redirect
+      const userRole = currentUser.role;
+      if (userRole === "user") {
+        navigate("/slots", { replace: true });
+      } else if (userRole === "moderator" || userRole === "admin") {
+        navigate("/dashboard", { replace: true });
+      } else {
+        // Fallback
+        navigate("/slots", { replace: true });
+      }
     }
   }, [
     loginSuccess,

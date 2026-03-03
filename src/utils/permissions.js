@@ -82,10 +82,11 @@ export const getAllowedRoutes = () => {
   const userRole = getUserRole();
 
   const routes = {
-    [ROLES.USER]: ["/slots", "/settings"],
+    [ROLES.USER]: ["/slots", "/blacklist", "/settings"],
     [ROLES.MODERATOR]: [
-      "/home",
+      "/dashboard",
       "/stations",
+      "/station-comparison",
       "/revenue",
       "/blacklist",
       "/notifications",
@@ -93,10 +94,10 @@ export const getAllowedRoutes = () => {
       "/slots",
     ],
     [ROLES.ADMIN]: [
-      "/home",
+      "/dashboard",
       "/stations",
       "/station/:imei",
-      "/comparison",
+      "/station-comparison",
       "/revenue",
       "/users",
       "/blacklist",

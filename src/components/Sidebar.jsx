@@ -52,7 +52,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       return [
         {
           section: "OVERVIEW",
-          items: [{ id: "home", label: t("dashboard"), icon: faTachometerAlt }],
+          items: [
+            { id: "dashboard", label: t("dashboard"), icon: faTachometerAlt },
+          ],
         },
         {
           section: "OPERATIONS",
@@ -79,7 +81,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       return [
         {
           section: "OVERVIEW",
-          items: [{ id: "home", label: t("dashboard"), icon: faTachometerAlt }],
+          items: [
+            { id: "dashboard", label: t("dashboard"), icon: faTachometerAlt },
+          ],
         },
         {
           section: "OPERATIONS",
