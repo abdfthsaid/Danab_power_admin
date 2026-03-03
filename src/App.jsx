@@ -109,14 +109,7 @@ function App() {
                               </ProtectedRoute>
                             }
                           />
-                          <Route
-                            path="blacklist"
-                            element={
-                              <ProtectedRoute adminOnly={true}>
-                                <Blacklist />
-                              </ProtectedRoute>
-                            }
-                          />
+                          <Route path="blacklist" element={<Blacklist />} />
                           <Route path="powerbanks" element={<PowerBanks />} />
                           <Route
                             path="notifications"
